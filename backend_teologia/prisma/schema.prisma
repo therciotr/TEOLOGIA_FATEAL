@@ -1,1 +1,69 @@
-// Simulação de conteúdo do arquivo schema.prisma
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Usuario {
+  id     String  @id @default(uuid()) @db.Char(36)
+  nome   String
+  email  String  @unique
+  senha  String
+  perfil String
+  ativo  Boolean @default(true)
+}
+
+model Aluno {
+  id        String       @id @default(uuid()) @db.Char(36)
+  nome      String
+  email     String       @unique
+  telefone  String?
+  turmaId   String?      @db.Char(36)
+  turma     Turma?       @relation(fields: [turmaId], references: [id])
+  mensalidades Mensalidade[]
+}
+
+model Responsavel {
+  id       String  @id @default(uuid()) @db.Char(36)
+  nome     String
+  email    String  @unique
+  telefone String?
+}
+
+model Plano {
+  id    String  @id @default(uuid()) @db.Char(36)
+  nome  String
+  valor Float
+  turmas Turma[]
+}
+
+model Turma {
+  id      String   @id @default(uuid()) @db.Char(36)
+  nome    String
+  planoId String?  @db.Char(36)
+  plano   Plano?   @relation(fields: [planoId], references: [id])
+  alunos  Aluno[]
+}
+
+model Mensalidade {
+  id        String   @id @default(uuid()) @db.Char(36)
+  alunoId   String   @db.Char(36)
+  aluno     Aluno    @relation(fields: [alunoId], references: [id])
+  valor     Float
+  vencimento DateTime
+  status    String   @default("pendente")
+  pagamentos Pagamento[]
+}
+
+model Pagamento {
+  id             String      @id @default(uuid()) @db.Char(36)
+  mensalidadeId  String      @db.Char(36)
+  mensalidade    Mensalidade @relation(fields: [mensalidadeId], references: [id])
+  data_pagamento DateTime
+  valor_pago     Float
+  metodo         String
+}

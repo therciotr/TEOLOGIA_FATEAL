@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:10.6
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: trsystemas_teologia
+      MYSQL_USER: trsystemas_teologia
+      MYSQL_PASSWORD: Fateal2025#@Teologia
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+  backend:
+    build: .
+    container_name: backend_teologia
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mariadb
+    environment:
+      DATABASE_URL: "mysql://trsystemas_teologia:Fateal2025%23%40Teologia@mariadb:3306/trsystemas_teologia"
+    command: npm run start:prod
+
+volumes:
+  mariadb_data:
