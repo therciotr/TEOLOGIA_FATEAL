@@ -1,0 +1,53 @@
+{
+  "name": "backend_teologia",
+  "version": "1.0.0",
+  "description": "Backend do sistema Teologia FATEAL",
+  "main": "dist/main.js",
+  "scripts": {
+    "start": "node dist/main.js",               // Inicia o app em produção
+    "start:dev": "nest start --watch",          // Inicia em modo de desenvolvimento (hot-reload)
+    "start:prod": "nest start --prod",          // Inicia em modo de produção otimizado
+    "build": "nest build",                      // Compila TypeScript para JavaScript na pasta dist
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"", // Formata todo o código
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"       // Analisa e corrige problemas de lint
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",                // Módulos comuns do NestJS
+    "@nestjs/config": "^3.1.1",                 // Gerenciamento de variáveis de ambiente
+    "@nestjs/core": "^10.0.0",                  // Núcleo do NestJS
+    "@nestjs/jwt": "^10.0.2",                   // JWT Auth
+    "@nestjs/passport": "^10.0.2",              // Integração do Nest com Passport
+    "@nestjs/platform-express": "^10.0.0",      // Plataforma Express
+    "@nestjs/swagger": "^7.0.0",                // Integração com Swagger
+    "@prisma/client": "^5.9.0",                 // Cliente Prisma para acessar o banco
+    "bcrypt": "^5.1.0",                         // Hash de senhas
+    "class-transformer": "^0.5.1",              // Transforma objetos automaticamente
+    "class-validator": "^0.14.0",               // Validação de DTOs
+    "jsonwebtoken": "^9.0.2",                   // JWT puro
+    "passport": "^0.7.0",                       // Biblioteca de autenticação
+    "passport-jwt": "^4.0.1",                   // Estratégia JWT do Passport
+    "passport-local": "^1.0.0",                 // Estratégia Local do Passport
+    "pdfkit": "^0.13.0",                        // Gerador de PDF para comprovantes
+    "prisma": "^5.9.0",                         // Ferramenta de migrations e gerenciamento do Prisma
+    "reflect-metadata": "^0.1.13",              // Suporte a decorators (TypeScript)
+    "rxjs": "^7.8.0",                           // Programação reativa (NestJS usa muito)
+    "swagger-ui-express": "^4.6.3"              // Servir Swagger UI no Express
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.0.0",                   // CLI do NestJS
+    "@nestjs/schematics": "^10.0.0",            // Ferramentas de geração de código
+    "@nestjs/testing": "^10.0.0",               // Testes no NestJS
+    "@types/bcrypt": "^5.0.0",                  // Tipagem do bcrypt
+    "@types/jsonwebtoken": "^9.0.2",            // Tipagem do jsonwebtoken
+    "@types/multer": "^1.4.12",                 // Tipagem do multer (uploads)
+    "@types/node": "^20.0.0",                   // Tipagem do Node.js
+    "@types/passport-jwt": "^3.0.8",            // Tipagem do passport-jwt
+    "@types/passport-local": "^1.0.36",         // Tipagem do passport-local
+    "@types/pdfkit": "^0.13.9",                 // Tipagem do pdfkit
+    "eslint": "^8.56.0",                        // Lint de código
+    "prettier": "^3.1.0",                       // Formatação de código
+    "ts-loader": "^9.4.4",                      // Loader para TypeScript
+    "ts-node": "^10.9.1",                       // Executa TypeScript diretamente
+    "typescript": "^5.3.0"                      // Compilador TypeScript
+  }
+}

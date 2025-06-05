@@ -1,0 +1,2 @@
+rootProject.name = 'teologia_fateal'
+include ':app'

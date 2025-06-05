@@ -1,0 +1,118 @@
+// ===================================================================
+// Prisma Schema - Projeto Teologia FATEAL
+// Conexão com banco MySQL e modelos completos
+// ===================================================================
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ===================================================================
+// Modelo de usuários do sistema
+// ===================================================================
+model Usuario {
+  id     String  @id @default(uuid()) @db.Char(36)     // Identificador UUID
+  nome   String                                       // Nome completo
+  email  String  @unique                               // E-mail único
+  senha  String                                       // Senha criptografada
+  perfil String                                       // Perfil (admin, professor, etc.)
+  ativo  Boolean @default(true)                        // Status ativo/inativo
+}
+
+// ===================================================================
+// Modelo de alunos
+// Inclui dados pessoais, vínculo com turma, matrícula e documentos
+// ===================================================================
+model Aluno {
+  id              String        @id @default(uuid()) @db.Char(36)   // Identificador UUID
+  nome            String                                         // Nome completo
+  email           String        @unique                           // E-mail único
+  telefone        String?                                        // Telefone (opcional)
+  dataNascimento  DateTime?                                      // Data de nascimento (opcional)
+  endereco        String?                                        // Endereço (opcional)
+  rg              String?                                        // Documento de identidade (opcional)
+  fotoUrl         String?                                        // URL da foto 3x4 (opcional)
+  matriculaPaga   Boolean       @default(false)                   // NOVO CAMPO: Status da matrícula
+  documentos      Documento[]                                    // Relacionamento com documentos
+  createdAt       DateTime      @default(now())                   // Data de criação
+  updatedAt       DateTime      @updatedAt                         // Data de atualização
+  turmaId         String?       @db.Char(36)                      // Turma vinculada (opcional)
+  turma           Turma?        @relation(fields: [turmaId], references: [id]) // Relação com turma
+  mensalidades    Mensalidade[]                                  // Relacionamento com mensalidades
+}
+
+// ===================================================================
+// Modelo de documentos dos alunos
+// ===================================================================
+model Documento {
+  id        String   @id @default(uuid()) @db.Char(36)             // Identificador UUID
+  nome      String                                         // Nome do documento
+  url       String                                         // URL do documento
+  alunoId   String    @db.Char(36)                          // ID do aluno associado
+  aluno     Aluno     @relation(fields: [alunoId], references: [id]) // Relação com aluno
+  criadoEm  DateTime  @default(now())                       // Data de criação
+}
+
+// ===================================================================
+// Modelo de responsáveis
+// ===================================================================
+model Responsavel {
+  id       String  @id @default(uuid()) @db.Char(36)       // Identificador UUID
+  nome     String                                        // Nome completo
+  email    String  @unique                               // E-mail único
+  telefone String?                                       // Telefone (opcional)
+}
+
+// ===================================================================
+// Modelo de planos de estudo
+// ===================================================================
+model Plano {
+  id     String   @id @default(uuid()) @db.Char(36)       // Identificador UUID
+  nome   String                                        // Nome do plano
+  valor  Float                                         // Valor do plano
+  turmas Turma[]                                       // Relacionamento com turmas
+}
+
+// ===================================================================
+// Modelo de turmas
+// Cada turma pode ter um plano associado
+// ===================================================================
+model Turma {
+  id      String   @id @default(uuid()) @db.Char(36)       // Identificador UUID
+  nome    String                                        // Nome da turma
+  planoId String?   @db.Char(36)                        // Plano vinculado (opcional)
+  plano   Plano?    @relation(fields: [planoId], references: [id]) // Relação com plano
+  alunos  Aluno[]                                      // Relacionamento com alunos
+}
+
+// ===================================================================
+// Modelo de mensalidades
+// Cada mensalidade está vinculada a um aluno
+// ===================================================================
+model Mensalidade {
+  id           String        @id @default(uuid()) @db.Char(36) // Identificador UUID
+  alunoId      String        @db.Char(36)                      // ID do aluno
+  aluno        Aluno         @relation(fields: [alunoId], references: [id]) // Relação com aluno
+  valor        Float                                           // Valor da mensalidade
+  vencimento   DateTime                                        // Data de vencimento
+  status       String        @default("pendente")               // Status (paga, pendente, etc.)
+  pagamentos   Pagamento[]                                      // Relacionamento com pagamentos
+}
+
+// ===================================================================
+// Modelo de pagamentos
+// Cada pagamento está vinculado a uma mensalidade
+// ===================================================================
+model Pagamento {
+  id              String        @id @default(uuid()) @db.Char(36) // Identificador UUID
+  mensalidadeId   String        @db.Char(36)                      // ID da mensalidade
+  mensalidade     Mensalidade   @relation(fields: [mensalidadeId], references: [id]) // Relação com mensalidade
+  data_pagamento  DateTime                                        // Data do pagamento
+  valor_pago      Float                                           // Valor pago
+  metodo          String                                          // Método (ex: PIX, boleto)
+}

@@ -1,0 +1,1 @@
+// Um arquivo de projeto Xcode básico para Flutter. Versão mínima iOS 11.0.

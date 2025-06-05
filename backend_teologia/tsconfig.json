@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",                    // Módulo CommonJS (compatível com Node.js)
+    "declaration": true,                     // Gera arquivos .d.ts para tipagem
+    "removeComments": true,                  // Remove comentários no build final
+    "emitDecoratorMetadata": true,           // Emite metadados para decorators
+    "experimentalDecorators": true,          // Suporte a decorators
+    "allowSyntheticDefaultImports": true,    // Permite imports padrões em módulos
+    "target": "es2017",                      // Alvo de compilação para ES2017
+    "sourceMap": true,                       // Gera source maps para debug
+    "outDir": "./dist",                      // Diretório de saída para build
+    "baseUrl": "./src",                      // Base para resolver caminhos relativos (útil para @/)
+    "incremental": true,                     // Compila de forma incremental (mais rápido)
+    "paths": {
+      "@/*": ["*"]                           // Atalho @/ aponta para src/*
+    },
+    "strictPropertyInitialization": false,   // Para DTOs que não inicializam no construtor
+    "strictNullChecks": true                 // Checagem estrita de valores nulos
+  },
+  "exclude": ["node_modules", "dist"],       // Exclui essas pastas da compilação
+  "include": ["src/**/*"]                    // Inclui todo o código fonte da pasta src
+}

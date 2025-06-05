@@ -1,0 +1,113 @@
+/* =======================================================
+  index.css - Estilos Globais e Customizações
+  Estrutura:
+  1. Importação do Tailwind
+  2. Reset e ajustes gerais
+  3. Estilo da navbar
+  4. Estilo da sidebar
+  5. Layout geral
+  6. Estilo de formulários e cards
+  7. Estilo de erros
+  8. Estilo de tabelas
+========================================================== */
+
+/* 1️⃣ Importação do Tailwind CSS */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 2️⃣ Reset e ajustes gerais */
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f6f7fb;
+}
+
+/* 3️⃣ Estilo da navbar */
+.navbar {
+  background: #3b4cca; /* Azul escuro - cor institucional */
+  color: #fff;
+  padding: 1rem;
+}
+
+.navbar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 2rem; /* Espaçamento entre links */
+}
+
+.navbar a {
+  color: #fff;
+  text-decoration: none;
+}
+
+/* 4️⃣ Estilo da sidebar */
+.sidebar {
+  width: 220px;
+  background: #eef0f7;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
+/* 5️⃣ Layout geral */
+.app-layout {
+  min-height: 100vh; /* Preenche toda a altura da tela */
+}
+
+/* 6️⃣ Estilo de formulários e cards */
+.login-form,
+.card {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.login-form input {
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border-radius: 5px;
+  border: 1px solid #bbb;
+}
+
+.login-form button {
+  padding: 0.75rem 2rem;
+  border: none;
+  background: #3b4cca;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* 7️⃣ Estilo de mensagens de erro */
+.error {
+  color: #f00;
+  margin-bottom: 1rem;
+}
+
+/* 8️⃣ Estilo de tabelas */
+table {
+  width: 100%;
+  background: #fff;
+  border-radius: 8px;
+  margin-top: 1rem;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.8rem 1rem;
+  text-align: left;
+}
+
+th {
+  background: #f0f0f7; /* Cabeçalhos com fundo claro */
+}
+
+tr:nth-child(even) {
+  background: #fafaff; /* Linhas pares com cor diferenciada */
+}
