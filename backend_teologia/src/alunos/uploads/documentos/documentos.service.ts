@@ -1,23 +1,27 @@
+// src/alunos/uploads/documentos/documentos.service.ts
+
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service'; // ✅ Usando alias @
 import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { UpdateDocumentoDto } from './dto/update-documento.dto';
 
+/**
+ * 📦 DocumentosService
+ * Serviço responsável pela lógica de negócios de documentos dos alunos.
+ */
 @Injectable()
 export class DocumentosService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Cria um novo documento.
+   * 🔹 Cria um novo documento.
    */
   async create(data: CreateDocumentoDto) {
-    return this.prisma.documento.create({
-      data,
-    });
+    return this.prisma.documento.create({ data });
   }
 
   /**
-   * Lista todos os documentos.
+   * 🔹 Lista todos os documentos com os dados do aluno associado.
    */
   async findAll() {
     return this.prisma.documento.findMany({
@@ -26,7 +30,7 @@ export class DocumentosService {
   }
 
   /**
-   * Busca um documento por ID.
+   * 🔹 Busca um documento específico por ID.
    */
   async findOne(id: string) {
     return this.prisma.documento.findUnique({
@@ -36,7 +40,7 @@ export class DocumentosService {
   }
 
   /**
-   * Atualiza um documento.
+   * 🔹 Atualiza um documento existente.
    */
   async update(id: string, data: UpdateDocumentoDto) {
     return this.prisma.documento.update({
@@ -46,31 +50,30 @@ export class DocumentosService {
   }
 
   /**
-   * Remove um documento.
+   * 🔹 Remove um documento existente.
    */
   async remove(id: string) {
-    return this.prisma.documento.delete({
+    await this.prisma.documento.delete({
       where: { id },
     });
+    return { message: `Documento com ID ${id} removido com sucesso!` };
   }
 
   /**
-   * Salva múltiplos documentos (usado no upload de vários arquivos).
+   * 🔹 Salva múltiplos documentos (usado no upload múltiplo).
    */
   async salvarDocumentos(alunoId: string, documentos: Express.Multer.File[]) {
-    const documentosCriados = [];
-
-    for (const doc of documentos) {
-      const documento = await this.prisma.documento.create({
-        data: {
-          nome: doc.originalname,
-          url: doc.path,
-          alunoId,
-        },
-      });
-
-      documentosCriados.push(documento);
-    }
+    const documentosCriados = await Promise.all(
+      documentos.map((doc) =>
+        this.prisma.documento.create({
+          data: {
+            nome: doc.originalname,
+            url: doc.path,
+            alunoId,
+          },
+        }),
+      ),
+    );
 
     return documentosCriados;
   }

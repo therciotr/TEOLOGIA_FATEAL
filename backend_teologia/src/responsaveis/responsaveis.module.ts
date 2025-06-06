@@ -1,3 +1,4 @@
+// src/responsaveis/responsaveis.module.ts
 import { Module } from '@nestjs/common';
 import { ResponsaveisService } from './responsaveis.service';
 import { ResponsaveisController } from './responsaveis.controller';

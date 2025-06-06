@@ -1,13 +1,13 @@
+// src/pagamentos/pagamentos.service.ts
+
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { PagamentosBancosService } from './pagamentos-bancos.service';
 import { Response } from 'express';
 
 /**
- * Service principal de Pagamentos.
- * - Integrações com APIs de bancos.
- * - Pagamento de mensalidades locais.
- * - Geração de comprovantes em PDF (mockup).
+ * 📦 PagamentosService
+ * Serviço responsável pela lógica de pagamentos e integração com bancos.
  */
 @Injectable()
 export class PagamentosService {
@@ -17,9 +17,7 @@ export class PagamentosService {
   ) {}
 
   /**
-   * Método dinâmico para integração de pagamento com bancos.
-   * @param banco Nome do banco (bb, mercadopago, bradesco, etc).
-   * @param dadosPagamento Dados para enviar ao banco.
+   * 🔹 Realiza o pagamento usando o banco especificado.
    */
   async pagarBanco(banco: string, dadosPagamento: any) {
     if (!banco || !dadosPagamento) {
@@ -32,16 +30,7 @@ export class PagamentosService {
     switch (banco) {
       case 'bb':
         return this.bancosService.pagarComBancoDoBrasil(dadosPagamento);
-      case 'mercadopago':
-        return this.bancosService.pagarComMercadoPago(dadosPagamento);
-      case 'bradesco':
-        return this.bancosService.pagarComBradesco(dadosPagamento);
-      case 'santander':
-        return this.bancosService.pagarComSantander(dadosPagamento);
-      case 'caixa':
-        return this.bancosService.pagarComCaixa(dadosPagamento);
-      case 'sicredi':
-        return this.bancosService.pagarComSicredi(dadosPagamento);
+      // ✅ Adicione aqui outros bancos suportados se necessário
       default:
         throw new HttpException(
           `Banco ${banco} não suportado!`,
@@ -51,19 +40,14 @@ export class PagamentosService {
   }
 
   /**
-   * Cria um novo pagamento (no banco local, por ex: ao receber confirmação).
-   * @param data Dados do pagamento a criar.
+   * 🔹 Cria um novo registro de pagamento no banco.
    */
   async create(data: any) {
-    if (!data) {
-      throw new HttpException('Dados não informados!', HttpStatus.BAD_REQUEST);
-    }
-
     return this.prisma.pagamento.create({ data });
   }
 
   /**
-   * Lista todos os pagamentos com detalhes das mensalidades.
+   * 🔹 Retorna todos os pagamentos, incluindo mensalidades associadas.
    */
   async findAll() {
     return this.prisma.pagamento.findMany({
@@ -72,34 +56,21 @@ export class PagamentosService {
   }
 
   /**
-   * Executa um pagamento real (atualiza status de mensalidade, por exemplo).
-   * @param id ID do pagamento/mensalidade.
+   * 🔹 Marca uma mensalidade como "pago".
    */
   async pagar(id: string) {
-    if (!id) {
-      throw new HttpException('ID não informado!', HttpStatus.BAD_REQUEST);
-    }
-
-    // Lógica de atualização no banco
     await this.prisma.mensalidade.update({
       where: { id },
       data: { status: 'pago' },
     });
 
-    return { message: `Pagamento do ID ${id} realizado com sucesso!` };
+    return { message: `Pagamento da mensalidade ${id} realizado com sucesso!` };
   }
 
   /**
-   * Gera um comprovante em PDF (mockup real).
-   * @param id ID do pagamento.
-   * @param res Objeto de resposta do Express.
+   * 🔹 Gera um comprovante de pagamento (PDF - mockup).
    */
   async gerarComprovante(id: string, res: Response) {
-    if (!id) {
-      throw new HttpException('ID não informado!', HttpStatus.BAD_REQUEST);
-    }
-
-    // Mockup de geração de PDF
     res.setHeader('Content-Type', 'application/pdf');
     res.send('Comprovante gerado em PDF! (mockup)');
   }

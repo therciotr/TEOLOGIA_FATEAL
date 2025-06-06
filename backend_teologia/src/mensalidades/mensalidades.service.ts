@@ -1,8 +1,14 @@
+// src/mensalidades/mensalidades.service.ts
+
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service'; // ✅ Usando alias @ para padronização
 import { CreateMensalidadeDto } from './dto/create-mensalidade.dto';
 import { UpdateMensalidadeDto } from './dto/update-mensalidade.dto';
 
+/**
+ * 📦 MensalidadesService
+ * Serviço que gerencia as mensalidades dos alunos.
+ */
 @Injectable()
 export class MensalidadesService {
   constructor(private readonly prisma: PrismaService) {}
@@ -11,13 +17,11 @@ export class MensalidadesService {
    * Cria uma nova mensalidade.
    */
   async create(data: CreateMensalidadeDto) {
-    return this.prisma.mensalidade.create({
-      data,
-    });
+    return this.prisma.mensalidade.create({ data });
   }
 
   /**
-   * Lista todas as mensalidades.
+   * Retorna todas as mensalidades, incluindo o aluno associado.
    */
   async findAll() {
     return this.prisma.mensalidade.findMany({
@@ -26,7 +30,7 @@ export class MensalidadesService {
   }
 
   /**
-   * Busca mensalidade por ID.
+   * Retorna uma mensalidade específica por ID, incluindo o aluno.
    */
   async findOne(id: string) {
     return this.prisma.mensalidade.findUnique({
@@ -36,7 +40,7 @@ export class MensalidadesService {
   }
 
   /**
-   * Atualiza uma mensalidade.
+   * Atualiza uma mensalidade específica.
    */
   async update(id: string, data: UpdateMensalidadeDto) {
     return this.prisma.mensalidade.update({
@@ -46,7 +50,7 @@ export class MensalidadesService {
   }
 
   /**
-   * Remove uma mensalidade.
+   * Remove uma mensalidade específica.
    */
   async remove(id: string) {
     return this.prisma.mensalidade.delete({
@@ -55,18 +59,17 @@ export class MensalidadesService {
   }
 
   /**
-   * Gera mensalidades para todos os alunos (exemplo básico).
+   * Gera mensalidades pendentes para todos os alunos.
    */
   async gerarMensalidades() {
-    // Lógica real de geração de mensalidades (exemplo simples)
     const alunos = await this.prisma.aluno.findMany();
 
     for (const aluno of alunos) {
       await this.prisma.mensalidade.create({
         data: {
           alunoId: aluno.id,
-          valor: 100.0,
-          vencimento: new Date(),
+          valor: 100.0, // 💰 Valor fixo ou variável
+          vencimento: new Date(), // 📅 Data atual (ajuste para data correta!)
           status: 'pendente',
         },
       });

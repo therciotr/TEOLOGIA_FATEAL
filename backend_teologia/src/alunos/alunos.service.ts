@@ -1,11 +1,12 @@
 // src/alunos/alunos.service.ts
 
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
+import { PrismaService } from '@/prisma/prisma.service'; // ✅ Usando o alias @ para importar o PrismaService
 import { CreateAlunoDto } from './dto/create-aluno.dto';
 import { UpdateAlunoDto } from './dto/update-aluno.dto';
 
 /**
+ * 📦 AlunosService
  * Serviço responsável pela lógica de negócios relacionada a "Alunos".
  * Usa o PrismaService para interagir com o banco de dados.
  */
@@ -14,27 +15,29 @@ export class AlunosService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Cria um novo aluno no banco de dados.
+   * 🔹 Cria um novo aluno no banco de dados.
    * Também lida com o relacionamento de documentos, se fornecido.
    * @param data - Dados do aluno (CreateAlunoDto)
+   * @returns O aluno criado, com documentos vinculados (se houver)
    */
   async create(data: CreateAlunoDto) {
     return this.prisma.aluno.create({
       data: {
         ...data,
-        documentos: {
-          // Cria os documentos associados ao aluno (caso existam)
-          create: data.documentos?.map((doc) => ({
-            nome: doc.nome,
-            url: doc.url,
-          })) || [],
-        },
+        documentos: data.documentos?.length
+          ? {
+              create: data.documentos.map((doc) => ({
+                nome: doc.nome,
+                url: doc.url,
+              })),
+            }
+          : undefined,
       },
     });
   }
 
   /**
-   * Retorna todos os alunos cadastrados, incluindo:
+   * 🔹 Retorna todos os alunos cadastrados, incluindo:
    * - Documentos associados
    * - Informações da turma vinculada
    */
@@ -48,7 +51,7 @@ export class AlunosService {
   }
 
   /**
-   * Busca um aluno específico pelo ID.
+   * 🔹 Busca um aluno específico pelo ID.
    * Lança exceção se o aluno não existir.
    * @param id - UUID do aluno
    */
@@ -60,6 +63,7 @@ export class AlunosService {
         turma: true,
       },
     });
+
     if (!aluno) {
       throw new NotFoundException('Aluno não encontrado');
     }
@@ -67,7 +71,7 @@ export class AlunosService {
   }
 
   /**
-   * Atualiza as informações de um aluno.
+   * 🔹 Atualiza as informações de um aluno.
    * Se houver documentos, remove todos os existentes e cria os novos.
    * @param id - UUID do aluno
    * @param data - Dados atualizados (UpdateAlunoDto)
@@ -85,19 +89,19 @@ export class AlunosService {
                 url: doc.url,
               })),
             }
-          : undefined, // Se não enviar documentos, mantém os existentes
+          : undefined,
       },
     });
   }
 
   /**
-   * Remove um aluno do banco de dados pelo ID.
+   * 🔹 Remove um aluno do banco de dados pelo ID.
    * @param id - UUID do aluno
    */
   async remove(id: string) {
     await this.prisma.aluno.delete({
       where: { id },
     });
-    return { message: `Aluno com ID ${id} removido!` };
+    return { message: `Aluno com ID ${id} removido com sucesso!` };
   }
 }

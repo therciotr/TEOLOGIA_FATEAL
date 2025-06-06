@@ -1,98 +1,100 @@
-version: '3.8'
+version: "3.8"
 
-# Rede isolada para todos os serviços
 networks:
   teologia_network:
     driver: bridge
 
+volumes:
+  mariadb_data:
+
 services:
-  # Banco de dados MariaDB
   mariadb:
     image: mariadb:10.6
-    restart: always
     container_name: mariadb_teologia
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}   # Senha root (do arquivo .env)
-      MYSQL_DATABASE: ${MYSQL_DATABASE}             # Nome do banco inicial
-      MYSQL_USER: ${MYSQL_USER}                     # Usuário do banco
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}             # Senha do usuário
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "3306:3306"                                 # Exposição local
+      - "3306:3306"
     volumes:
-      - mariadb_data:/var/lib/mysql                 # Persistência dos dados
+      - mariadb_data:/var/lib/mysql
     networks:
       - teologia_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # Backend NestJS
   backend:
     build:
-      context: ./backend_teologia                   # Dockerfile do backend
+      context: ./backend_teologia
+      dockerfile: Dockerfile
     container_name: backend_teologia
-    depends_on:
-      - mariadb                                     # Sobe apenas após o banco
     environment:
-      DATABASE_URL: ${DATABASE_URL}                 # Conexão ao banco (do .env)
+      DATABASE_URL: ${DATABASE_URL}
       NODE_ENV: production
-    command: npm run start:prod
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    command: node dist/main.js
+    depends_on:
+      - mariadb
+    restart: always
+    ports:
+      - "3000:3000"        # Mapeamento direto para testes
+    networks:
+      - teologia_network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.routers.backend.tls.certresolver=myresolver"
       - "traefik.http.services.backend.loadbalancer.server.port=3000"
-    networks:
-      - teologia_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # Frontend (ex: React ou Vite)
   frontend:
     build:
       context: ./frontend_teologia
+      dockerfile: Dockerfile
     container_name: frontend_teologia
     depends_on:
       - backend
+    restart: always
+    ports:
+      - "5173:80"         # Mapeamento direto para testes
+    networks:
+      - teologia_network
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.frontend.tls.certresolver=myresolver"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
-    networks:
-      - teologia_network
 
-  # Traefik - Proxy reverso com HTTPS automático (Let's Encrypt)
   traefik:
     image: traefik:v2.9
     container_name: traefik_teologia
     command:
-      - "--api.dashboard=true"                                 # Habilita painel de monitoramento
+      - "--api.dashboard=true"
       - "--api.insecure=false"
-      - "--providers.docker=true"                              # Habilita descoberta automática
+      - "--providers.docker=true"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.myresolver.acme.email=${EMAIL_LETSENCRYPT}" # E-mail para renovação Let's Encrypt
+      - "--certificatesresolvers.myresolver.acme.email=${EMAIL_LETSENCRYPT}"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"                                            # Dashboard do Traefik (http://localhost:8080)
+      - "8080:8080"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock              # Permite o Traefik ler os serviços Docker
-      - ./traefik/letsencrypt:/letsencrypt                      # Local de armazenamento dos certificados
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik/letsencrypt:/letsencrypt
     networks:
       - teologia_network
-
-volumes:
-  mariadb_data:                                                # Volume persistente para o MariaDB
-
-# 📝 Observações gerais:
-# ✅ Variáveis sensíveis devem estar em um arquivo .env (NUNCA subir ao repositório público!).
-# ✅ Crie a pasta `traefik/letsencrypt/` e o arquivo `acme.json` com permissão 600.
-# ✅ Dashboard do Traefik acessível em http://localhost:8080.
-# ✅ Let's Encrypt automático para HTTPS.

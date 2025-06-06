@@ -3,16 +3,23 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copiar package.json e package-lock.json para cache mais eficiente
+# Instalar OpenSSL para compatibilidade do Prisma
+RUN apk update && apk add --no-cache openssl
+
+# Copiar arquivos essenciais para o build
 COPY package*.json ./
+COPY tsconfig.json ./
+
+# Copiar a pasta prisma (se existir)
+COPY prisma ./prisma
+
+# Copiar a pasta src
+COPY src ./src
 
 # Instalar dependências
-RUN npm ci
+RUN npm install
 
-# Copiar o restante do código-fonte
-COPY . .
-
-# Compilar o projeto para produção
+# Compilar o projeto
 RUN npm run build
 
 # Etapa 2: Imagem final para produção
@@ -20,15 +27,18 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copiar apenas o diretório dist (código compilado) e dependências necessárias
+# Instalar OpenSSL também no ambiente final para que o Prisma funcione em produção
+RUN apk update && apk add --no-cache openssl
+
+# Copiar apenas o build final e as dependências necessárias
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/prisma ./prisma
 
-# Variáveis de ambiente padrão (opcional)
+# Variáveis de ambiente padrão
 ENV NODE_ENV=production
 
-# Expor a porta padrão do NestJS
 EXPOSE 3000
 
 # Comando padrão de execução

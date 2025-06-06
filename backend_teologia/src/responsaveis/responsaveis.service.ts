@@ -1,3 +1,4 @@
+// src/responsaveis/responsaveis.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateResponsavelDto } from './dto/create-responsavel.dto';
@@ -8,9 +9,7 @@ export class ResponsaveisService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateResponsavelDto) {
-    return this.prisma.responsavel.create({
-      data,
-    });
+    return this.prisma.responsavel.create({ data });
   }
 
   async findAll() {
@@ -28,7 +27,7 @@ export class ResponsaveisService {
   }
 
   async update(id: string, data: UpdateResponsavelDto) {
-    await this.findOne(id); // Confere se existe
+    await this.findOne(id); // Verifica existência
     return this.prisma.responsavel.update({
       where: { id },
       data,
@@ -36,7 +35,7 @@ export class ResponsaveisService {
   }
 
   async remove(id: string) {
-    await this.findOne(id); // Confere se existe
+    await this.findOne(id); // Verifica existência
     return this.prisma.responsavel.delete({
       where: { id },
     });

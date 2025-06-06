@@ -91,4 +91,14 @@ export class CreateAlunoDto {
   @IsOptional()
   @IsString()
   turmaId?: string;
+
+  // 🔥 Adicionado para resolver erro no build
+  @ApiProperty({
+    example: 'uploads/fotos/foto_joao.jpg',
+    description: 'URL da foto 3x4 salva no servidor (gerada automaticamente)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  fotoUrl?: string;
 }

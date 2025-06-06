@@ -7,10 +7,13 @@ import { IsOptional, IsString, IsBoolean } from 'class-validator';
 
 /**
  * DTO para atualização de aluno.
- * Herda todos os campos opcionais de CreateAlunoDto (PartialType),
- * e adiciona/ajusta campos específicos para edição.
+ * 🔥 Herda todos os campos opcionais de CreateAlunoDto (PartialType).
+ * 🔥 Inclui comentários e descrições detalhadas para documentação Swagger.
  */
 export class UpdateAlunoDto extends PartialType(CreateAlunoDto) {
+  /**
+   * Endereço atualizado do aluno (opcional).
+   */
   @IsOptional()
   @IsString()
   @ApiProperty({
@@ -20,6 +23,9 @@ export class UpdateAlunoDto extends PartialType(CreateAlunoDto) {
   })
   endereco?: string;
 
+  /**
+   * RG atualizado do aluno (opcional).
+   */
   @IsOptional()
   @IsString()
   @ApiProperty({
@@ -29,6 +35,10 @@ export class UpdateAlunoDto extends PartialType(CreateAlunoDto) {
   })
   rg?: string;
 
+  /**
+   * Status atualizado da matrícula do aluno.
+   * true = matrícula paga | false = matrícula não paga.
+   */
   @IsOptional()
   @IsBoolean()
   @ApiProperty({
@@ -37,4 +47,11 @@ export class UpdateAlunoDto extends PartialType(CreateAlunoDto) {
     required: false,
   })
   matriculaPaga?: boolean;
+
+  /**
+   * 🔥 Importante!
+   * Campo `fotoUrl` herdado do CreateAlunoDto (opcional), necessário para o backend
+   * pois o controller manipula esse campo após upload da foto (evita erro de build!).
+   * Como é herdado do CreateAlunoDto via PartialType, não precisa declarar aqui.
+   */
 }
