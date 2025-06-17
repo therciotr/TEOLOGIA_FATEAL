@@ -18,3 +18,5 @@ backend_teologia/node_modules/
 # --- Outros ---
 .DS_Store
 EOF
+# Firebase secrets
+secrets/
