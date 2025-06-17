@@ -1,0 +1,86 @@
+name: mobile_teologia
+description: App mobile da FATEAL – consulta de disciplinas, avisos e mais.
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.2.0 <4.0.0"
+
+# ─────────────────────────────────────────────────────────────
+# DEPENDÊNCIAS DE PRODUÇÃO
+# ─────────────────────────────────────────────────────────────
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # 🌈 UI e Ícones
+  cupertino_icons: ^1.0.8
+  material_color_utilities: ^0.11.1
+  lottie: ^3.1.0
+
+  # 🧠 Gerenciamento de estado
+  provider: ^6.1.2
+  flutter_riverpod: ^3.0.0
+
+  # 🌐 Rede, Armazenamento e Autenticação
+  http: ^1.2.1
+  connectivity_plus: ^5.0.2
+  shared_preferences: ^2.2.2
+  flutter_secure_storage: ^9.2.4
+  flutter_dotenv: ^5.1.0
+  jwt_decode: ^0.3.1
+  path_provider: ^2.1.2
+
+  # 🔥 Firebase + Push Notifications
+  firebase_core: ^3.14.0
+  firebase_messaging: ^15.2.7
+  cloud_firestore: ^5.0.0
+  flutter_local_notifications: ^17.1.1
+
+  # 🔧 Utilitários
+  qr_code_scanner: ^1.0.1
+  intl: ^0.18.0
+  flutter_localizations:
+    sdk: flutter
+
+# ─────────────────────────────────────────────────────────────
+# DEPENDÊNCIAS DE DESENVOLVIMENTO
+# ─────────────────────────────────────────────────────────────
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+  # 🛠️ Geração automática de código
+  build_runner: any
+  flutter_gen_runner: ^5.4.0
+
+# ─────────────────────────────────────────────────────────────
+# CONFIGURAÇÕES FLUTTER
+# ─────────────────────────────────────────────────────────────
+flutter:
+  uses-material-design: true
+
+  # Ativa suporte a .arb e geração de código l10n
+  generate: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/fonts/
+    - assets/lottie/
+    - assets/sounds/
+
+  fonts:
+    - family: OpenSans
+      fonts:
+        - asset: assets/fonts/OpenSans-Regular.ttf
+        - asset: assets/fonts/OpenSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/OpenSans-SemiBoldItalic.ttf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/OpenSans-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/OpenSans-ExtraBold.ttf
+          weight: 800

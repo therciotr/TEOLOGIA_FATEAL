@@ -1,0 +1,234 @@
+{
+  "@@locale": "en_US",
+
+  /* ============ App Info ============ */
+  "appTitle": "FATEAL Theology",
+  "@appTitle": { "description": "General app title" },
+
+  "loading": "Loading…",
+  "@loading": { "description": "Generic loading indicator" },
+
+  "tryAgain": "Try again",
+  "@tryAgain": { "description": "Button label to retry an action" },
+
+  "ok": "OK",
+  "@ok": { "description": "Standard OK button" },
+
+  "cancel": "Cancel",
+  "@cancel": { "description": "Standard cancel button" },
+
+  "confirmar": "Confirm",
+  "@confirmar": { "description": "Confirm action button" },
+
+  "sim": "Yes",
+  "@sim": { "description": "Affirmative response label" },
+
+  "nao": "No",
+  "@nao": { "description": "Negative response label" },
+
+  "genericErrorTitle": "Something went wrong",
+  "@genericErrorTitle": { "description": "Generic error title" },
+
+  "networkError": "No internet connection",
+  "@networkError": { "description": "Displayed when the app cannot connect to the internet" },
+
+  "serverError": "Unable to connect to the server",
+  "@serverError": { "description": "Displayed when the server is unreachable" },
+
+  "sucessoOperacao": "Operation completed successfully!",
+  "@sucessoOperacao": { "description": "Standard success message" },
+
+  "erroOperacao": "Error performing the operation.",
+  "@erroOperacao": { "description": "Standard error message" },
+
+  "nenhumDado": "No data available at the moment.",
+  "@nenhumDado": { "description": "Displayed when a list or data is empty" },
+
+  /* ============ Authentication ============ */
+  "login": "Login",
+  "@login": { "description": "Login button label" },
+
+  "email": "Email",
+  "@email": { "description": "Email field label" },
+
+  "password": "Password",
+  "@password": { "description": "Password field label" },
+
+  "invalidCredentials": "Invalid credentials. Please check your email and password.",
+  "@invalidCredentials": { "description": "Message shown on login failure" },
+
+  "recoverPassword": "Recover password",
+  "@recoverPassword": { "description": "Recover password button" },
+
+  "sendLink": "Send link",
+  "@sendLink": { "description": "Send reset link button" },
+
+  "linkSent": "Check your inbox 📧",
+  "@linkSent": { "description": "Displayed after sending a recovery link" },
+
+  "backToLogin": "Back to login",
+  "@backToLogin": { "description": "Go back to login screen" },
+
+  "logout": "Logout",
+  "@logout": { "description": "Logout action" },
+
+  /* ============ Menu / Navigation ============ */
+  "dashboard": "Dashboard",
+  "@dashboard": { "description": "Navigation item: Dashboard" },
+
+  "students": "Students",
+  "@students": { "description": "Navigation item: Students" },
+
+  "tuitions": "Tuitions",
+  "@tuitions": { "description": "Navigation item: Tuitions" },
+
+  "payments": "Payments",
+  "@payments": { "description": "Navigation item: Payments" },
+
+  "plans": "Plans",
+  "@plans": { "description": "Navigation item: Plans" },
+
+  "classes": "Classes",
+  "@classes": { "description": "Navigation item: Classes" },
+
+  "reports": "Reports",
+  "@reports": { "description": "Navigation item: Reports" },
+
+  "responsibles": "Guardians",
+  "@responsibles": { "description": "Navigation item: Guardians or Responsibles" },
+
+  "notifications": "Notifications",
+  "@notifications": { "description": "Navigation item: Notifications" },
+
+  "help": "Help",
+  "@help": { "description": "Navigation item: Help" },
+
+  "settings": "Settings",
+  "@settings": { "description": "Navigation item: Settings" },
+
+  /* ============ Drawer / Quick Actions ============ */
+  "toggleTheme": "Toggle theme",
+  "@toggleTheme": { "description": "Button to switch light/dark theme" },
+
+  "themeLight": "Light theme",
+  "@themeLight": { "description": "Light theme label" },
+
+  "themeDark": "Dark theme",
+  "@themeDark": { "description": "Dark theme label" },
+
+  "language": "Language",
+  "@language": { "description": "Language label" },
+
+  "selectLanguage": "Select language",
+  "@selectLanguage": { "description": "Select language button" },
+
+  /* ============ Home / Main Panel ============ */
+  "welcomeUser": "Welcome, {name}",
+  "@welcomeUser": {
+    "description": "Welcome greeting with user name",
+    "placeholders": {
+      "name": { "example": "Lucas" }
+    }
+  },
+
+  "scanQrCode": "Scan Pix QR Code",
+  "@scanQrCode": { "description": "Action to scan Pix QR Code" },
+
+  /* ============ Student Registration ============ */
+  "cadastrarAluno": "Register student",
+  "@cadastrarAluno": { "description": "Button to register a new student" },
+
+  "nome": "Name",
+  "@nome": { "description": "Label for name field" },
+
+  "campoObrigatorio": "This field is required",
+  "@campoObrigatorio": { "description": "Validation message for required field" },
+
+  "emailInvalido": "Invalid email",
+  "@emailInvalido": { "description": "Validation message for invalid email" },
+
+  "salvar": "Save",
+  "@salvar": { "description": "Save button label" },
+
+  "salvando": "Saving…",
+  "@salvando": { "description": "Saving progress indicator" },
+
+  "editar": "Edit",
+  "@editar": { "description": "Edit action" },
+
+  "visualizar": "View",
+  "@visualizar": { "description": "View action" },
+
+  "nenhumAluno": "No students found",
+  "@nenhumAluno": { "description": "Message when no students are listed" },
+
+  /* ============ Tuitions ============ */
+  "nenhumaMensalidade": "No tuitions found",
+  "@nenhumaMensalidade": { "description": "Message when tuition list is empty" },
+
+  /* ============ Payments ============ */
+  "nenhumPagamento": "No payments found",
+  "@nenhumPagamento": { "description": "Message when no payments are listed" },
+
+  "confirmarPagamento": "Confirm payment",
+  "@confirmarPagamento": { "description": "Title for confirm payment dialog" },
+
+  "desejaMarcarPago": "Do you really want to mark this payment as paid?",
+  "@desejaMarcarPago": { "description": "Confirmation message to mark payment" },
+
+  "pagamentoConfirmado": "Payment successfully marked as paid!",
+  "@pagamentoConfirmado": { "description": "Message shown after confirming payment" },
+
+  /* ============ Plans ============ */
+  "nenhumPlano": "No plans available",
+  "@nenhumPlano": { "description": "Message when no plans are listed" },
+
+  /* ============ Classes ============ */
+  "nenhumaTurma": "No classes registered",
+  "@nenhumaTurma": { "description": "Message when class list is empty" },
+
+  /* ============ Guardians ============ */
+  "nenhumResponsavel": "No guardians registered",
+  "@nenhumResponsavel": { "description": "Message when guardian list is empty" },
+
+  /* ============ Reports ============ */
+  "exportPdf": "Export PDF",
+  "@exportPdf": { "description": "Button to export as PDF" },
+
+  "exportExcel": "Export Excel",
+  "@exportExcel": { "description": "Button to export as Excel" },
+
+  "exportStarted": "Export started!",
+  "@exportStarted": { "description": "Message shown when export starts" },
+
+  /* ============ Notifications ============ */
+  "nenhumaNotificacao": "No notifications received",
+  "@nenhumaNotificacao": { "description": "Message when no notifications are listed" },
+
+  "novaNotificacaoTitulo": "New notification",
+  "@novaNotificacaoTitulo": { "description": "Title for new notification" },
+
+  "novaNotificacaoMsg": "{title}\n{body}",
+  "@novaNotificacaoMsg": {
+    "description": "Notification content shown in foreground",
+    "placeholders": {
+      "title": { "example": "Upcoming due date" },
+      "body": { "example": "Your tuition is due in 24 hours" }
+    }
+  },
+
+  /* ============ Help ============ */
+  "faqIntro": "Here you will find frequently asked questions and contact options.",
+  "@faqIntro": { "description": "Intro to FAQ/help screen" },
+
+  /* ============ Settings ============ */
+  "settingsIntro": "Here you can adjust your app preferences.",
+  "@settingsIntro": { "description": "Intro to settings screen" },
+
+  /* ============ Errors / 404 ============ */
+  "pageNotFound": "Page not found",
+  "@pageNotFound": { "description": "404 error title" },
+
+  "backToHome": "Back to home",
+  "@backToHome": { "description": "Button to return to home screen" }
+}
