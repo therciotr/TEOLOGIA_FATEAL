@@ -17,9 +17,14 @@ let PrismaService = class PrismaService extends client_1.PrismaClient {
         await this.$disconnect();
     }
     async enableShutdownHooks(app) {
-        this.$on('beforeExit', async () => {
+        app.enableShutdownHooks();
+        const shutdown = async () => {
             await app.close();
-        });
+            await this.$disconnect();
+            process.exit(0);
+        };
+        process.once('SIGINT', shutdown);
+        process.once('SIGTERM', shutdown);
     }
 };
 exports.PrismaService = PrismaService;

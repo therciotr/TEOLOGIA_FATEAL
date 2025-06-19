@@ -1,31 +1,52 @@
+// src/app.controller.ts
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiOkResponse,
+} from '@nestjs/swagger';
 
 /**
- * 📁 app.controller.ts
- * Controlador principal da aplicação. Fornece endpoints públicos como status/saudação.
+ * Controlador principal – status e health-check.
+ *
+ * NOTA:
+ * • `path: ''` ➜ NÃO há “v1” aqui; o Nest acrescenta via versionamento URI.
+ * • `version: '1'` ➜ rotas expostas em /v1/...
  */
 @ApiTags('App')
-@Controller()
+@Controller({ path: '', version: '1' })
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  /**
-   * 🔹 Endpoint GET raiz ("/") — exibe o status resumido da API.
-   */
+  /** GET /v1  ── status resumido (usado em landing pages ou verificações simples). */
   @Get()
-  @ApiOperation({ summary: 'Status da API (rota raiz)' })
-  getRoot(): object {
-    return this.appService.getStatus();
+  @ApiOperation({ summary: 'Status da API (root)' })
+  @ApiOkResponse({
+    description: 'API online',
+    schema: {
+      example: { status: 'ok' },
+    },
+  })
+  getRoot() {
+    return { status: 'ok' };
   }
 
-  /**
-   * 🔹 Endpoint GET "/status" — rota alternativa para monitoramento e healthcheck.
-   */
-  @Get('/status')
-  @ApiOperation({ summary: 'Verifica status e informações do servidor' })
-  getStatus(): object {
+  /** GET /v1/status ── health-check completo. */
+  @Get('status')
+  @ApiOperation({ summary: 'Health-check detalhado' })
+  @ApiOkResponse({
+    description: 'Informações de saúde da aplicação',
+    schema: {
+      example: {
+        status: 'ok',
+        uptime: 123.45,
+        timestamp: '2025-06-19T17:14:32.123Z',
+        version: '1.0.0',
+      },
+    },
+  })
+  getStatus() {
     return this.appService.getStatus();
   }
 }

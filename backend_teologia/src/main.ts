@@ -1,4 +1,3 @@
-// src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import {
@@ -7,44 +6,38 @@ import {
   VersioningType,
 } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import helmet from 'helmet';
 import compression from 'compression';
 import { json, urlencoded } from 'express';
-import { PrismaService } from '@/prisma/prisma.service';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { PrismaService } from './prisma/prisma.service';
 import * as dotenv from 'dotenv';
 
 async function bootstrap() {
-  dotenv.config(); // 🔹 Garante leitura de .env antes de tudo
+  dotenv.config();                    // carrega .env
 
-  const app = await NestFactory.create(AppModule, {
-    cors: true,
-  });
+  const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
 
-  const logger = new Logger('NestBootstrap');
-
-  /* ───────────── Segurança & Performance ───────────── */
+  /* ─── Segurança & performance ─── */
   app.use(helmet());
   app.use(compression());
-
   app.enableCors({
-    origin: process.env.CORS_ORIGIN?.split(',') ?? '*',
+    origin: (process.env.CORS_ORIGIN ?? '*').split(','),
     credentials: true,
   });
-
-  app.use(json({ limit: '5mb' }));
+  app.use(json({ limit: '10mb' }));
   app.use(urlencoded({ extended: true }));
 
-  /* ───────────── Versão & Prefixo ───────────── */
+  /* ─── SOMENTE versionamento URI ─── */
   app.enableVersioning({
     type: VersioningType.URI,
     defaultVersion: '1',
   });
+  // ❌ REMOVIDO: app.setGlobalPrefix('v1');
 
-  app.setGlobalPrefix('v1');
-
-  /* ───────────── Validação global ───────────── */
+  /* ─── Validação, filtros, logs ─── */
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -52,34 +45,30 @@ async function bootstrap() {
       transform: true,
     }),
   );
-
-  /* ───────────── Filtros & Interceptores ───────────── */
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new LoggingInterceptor());
 
-  /* ───────────── Swagger ───────────── */
-  const swaggerConfig = new DocumentBuilder()
+  /* ─── Swagger ─── */
+  const swaggerCfg = new DocumentBuilder()
     .setTitle('API Teologia FATEAL')
-    .setDescription(
-      'Documentação da API para gestão de alunos, mensalidades, pagamentos, planos, turmas e usuários.',
-    )
+    .setDescription('Documentação da API')
     .setVersion(process.env.npm_package_version ?? '1.0.0')
     .addBearerAuth()
     .build();
+  SwaggerModule.setup('api',
+    app,
+    SwaggerModule.createDocument(app, swaggerCfg),
+  );
 
-  const swaggerDoc = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api', app, swaggerDoc);
+  /* ─── Prisma shutdown graceful ─── */
+  const prisma = app.get(PrismaService);
+  await prisma.enableShutdownHooks(app);
 
-  /* ───────────── Shutdown graceful ───────────── */
-  const prismaService = app.get(PrismaService);
-  await prismaService.enableShutdownHooks(app);
-
-  /* ───────────── Inicialização ───────────── */
-  const port = parseInt(process.env.PORT ?? '3000', 10);
-  await app.listen(port);
-
-  logger.log(`✅ Servidor rodando: http://localhost:${port}`);
-  logger.log(`📘 Swagger disponível em: http://localhost:${port}/api`);
+  /* ─── Start ─── */
+  const port = Number(process.env.PORT) || 3000;
+  await app.listen(port, '0.0.0.0');
+  logger.log(`🚀  API on http://localhost:${port}/v1/status`);
+  logger.log(`📘  Swagger on http://localhost:${port}/api`);
 }
 
 bootstrap();

@@ -41,6 +41,6 @@ __decorate([
 ], AppController.prototype, "getStatus", null);
 exports.AppController = AppController = __decorate([
     (0, swagger_1.ApiTags)('App'),
-    (0, common_1.Controller)(),
+    (0, common_1.Controller)({ version: '1' }),
     __metadata("design:paramtypes", [app_service_1.AppService])
 ], AppController);
