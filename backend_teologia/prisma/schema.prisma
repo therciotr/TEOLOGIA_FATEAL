@@ -1,0 +1,246 @@
+// ===================================================================
+// Conexão & Gerador
+// ===================================================================
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+// ===================================================================
+// ENUMS – todos em minúsculo (compatíveis com DTOs e services)
+// ===================================================================
+enum MensalidadeStatus {
+  pago
+  pendente
+  atrasado
+  desconhecido
+}
+
+enum MetodoPagamento {
+  pix
+  boleto
+  transferencia
+  dinheiro
+  cartao
+  outro
+}
+
+// ===================================================================
+// Usuário
+// ===================================================================
+model Usuario {
+  id        String   @id @default(uuid()) @db.Char(36)
+  nome      String
+  email     String   @unique
+  senha     String
+  perfil    String
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  logsAcesso         LogAcesso[]
+  historicoPagamento HistoricoPagamento[]
+
+  @@index([email])
+}
+
+// ===================================================================
+// Plano
+// ===================================================================
+model Plano {
+  id          String   @id @default(uuid()) @db.Char(36)
+  nome        String   @unique(map: "idx_plano_nome")
+  valorPadrao Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  turmas Turma[]
+}
+
+// ===================================================================
+// Turma
+// ===================================================================
+model Turma {
+  id        String   @id @default(uuid()) @db.Char(36)
+  nome      String   @unique(map: "idx_turma_nome")
+  planoId   String?  @db.Char(36)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  plano  Plano?  @relation(fields: [planoId], references: [id], onDelete: SetNull)
+  alunos Aluno[]
+
+  @@index([planoId])
+}
+
+// ===================================================================
+// Aluno
+// ===================================================================
+model Aluno {
+  id             String    @id @default(uuid()) @db.Char(36)
+  nome           String
+  email          String    @unique
+  cpf            String?   @unique
+  telefone       String?
+  dataNascimento DateTime?
+  endereco       String?
+  rg             String?   @unique
+  fotoUrl        String?
+  matriculaPaga  Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  turmaId      String?            @db.Char(36)
+  turma        Turma?             @relation(fields: [turmaId], references: [id], onDelete: SetNull)
+  documentos   Documento[]
+  mensalidades Mensalidade[]
+  responsaveis AlunoResponsavel[]
+  notificacoes Notificacao[]
+
+  @@index([turmaId])
+}
+
+// ===================================================================
+// Responsável
+// ===================================================================
+model Responsavel {
+  id        String   @id @default(uuid()) @db.Char(36)
+  nome      String
+  email     String   @unique
+  cpf       String?  @unique
+  telefone  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  alunos AlunoResponsavel[]
+
+  @@index([email])
+}
+
+// ===================================================================
+// Aluno × Responsável (N:M)
+// ===================================================================
+model AlunoResponsavel {
+  id            String  @id @default(uuid()) @db.Char(36)
+  alunoId       String  @db.Char(36)
+  responsavelId String  @db.Char(36)
+  parentesco    String?
+
+  aluno       Aluno       @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  responsavel Responsavel @relation(fields: [responsavelId], references: [id], onDelete: Cascade)
+
+  @@unique([alunoId, responsavelId])
+  @@index([alunoId])
+  @@index([responsavelId])
+}
+
+// ===================================================================
+// Documento
+// ===================================================================
+model Documento {
+  id        String   @id @default(uuid()) @db.Char(36)
+  nome      String
+  url       String
+  criadoEm  DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  alunoId String @db.Char(36)
+  aluno   Aluno  @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+
+  @@index([alunoId])
+}
+
+// ===================================================================
+// Mensalidade
+// ===================================================================
+model Mensalidade {
+  id         String            @id @default(uuid()) @db.Char(36)
+  valor      Decimal           @db.Decimal(10, 2)
+  vencimento DateTime
+  status     MensalidadeStatus @default(pendente)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  alunoId    String      @db.Char(36)
+  aluno      Aluno       @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  pagamentos Pagamento[]
+
+  @@unique([alunoId, vencimento])
+  @@index([alunoId])
+}
+
+// ===================================================================
+// Pagamento
+// ===================================================================
+model Pagamento {
+  id            String          @id @default(uuid()) @db.Char(36)
+  dataPagamento DateTime
+  valorPago     Decimal         @db.Decimal(10, 2)
+  metodo        MetodoPagamento
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mensalidadeId String       @db.Char(36)
+  mensalidade   Mensalidade  @relation(fields: [mensalidadeId], references: [id], onDelete: Cascade)
+  historico     HistoricoPagamento[]
+
+  @@unique([mensalidadeId, metodo])
+  @@index([mensalidadeId])
+}
+
+// ===================================================================
+// Histórico de Pagamento
+// ===================================================================
+model HistoricoPagamento {
+  id            String   @id @default(uuid()) @db.Char(36)
+  alteracao     String
+  dataAlteracao DateTime @default(now())
+
+  pagamentoId String  @db.Char(36)
+  usuarioId   String? @db.Char(36)
+
+  pagamento Pagamento @relation(fields: [pagamentoId], references: [id], onDelete: Cascade)
+  usuario   Usuario?  @relation(fields: [usuarioId], references: [id])
+
+  @@index([pagamentoId])
+  @@index([usuarioId])
+}
+
+// ===================================================================
+// Notificação
+// ===================================================================
+model Notificacao {
+  id        String   @id @default(uuid()) @db.Char(36)
+  titulo    String
+  mensagem  String
+  dataEnvio DateTime @default(now())
+  lido      Boolean  @default(false)
+
+  alunoId String? @db.Char(36)
+  aluno   Aluno?  @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+
+  @@index([alunoId])
+  @@index([lido])
+}
+
+// ===================================================================
+// Log de Acesso
+// ===================================================================
+model LogAcesso {
+  id   String   @id @default(uuid()) @db.Char(36)
+  acao String
+  ip   String?
+  data DateTime @default(now())
+
+  usuarioId String?  @db.Char(36)
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id])
+
+  @@index([usuarioId])
+}

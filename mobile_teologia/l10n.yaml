@@ -1,0 +1,26 @@
+# Arquivo de configuração do “Flutter gen-l10n”.
+# Coloque na raiz do projeto, ao lado de `pubspec.yaml`.
+
+arb-dir: lib/l10n                     # Diretório dos arquivos .arb
+template-arb-file: app_pt.arb        # Base de tradução (pt-BR)
+output-localization-file: app_localizations.dart
+output-dir: lib/l10n                 # Diretório onde o Dart será gerado
+output-class: AppLocalizations       # Nome da classe gerada
+
+preferred-supported-locales:
+  - pt_BR
+  - en_US
+
+untranslated-messages-file: lib/l10n/untranslated.json
+
+# Garante que toda chave com “@” tenha descrição (boa prática)
+required-resource-attributes:
+  - description
+
+# Gera getters não-nullables
+nullable-getter: false
+
+# Ordena as mensagens na saída gerada
+synthetic-package: false
+use-escaping: true
+format: true
