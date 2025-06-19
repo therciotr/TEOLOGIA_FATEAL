@@ -3,7 +3,7 @@
 import { PartialType } from '@nestjs/swagger';
 import { CreatePlanoDto } from './create-plano.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsNumber } from 'class-validator';
+import { IsOptional, IsString, IsNumber, Min } from 'class-validator';
 
 /**
  * DTO para atualização de um plano financeiro.
@@ -21,10 +21,12 @@ export class UpdatePlanoDto extends PartialType(CreatePlanoDto) {
 
   @IsOptional()
   @IsNumber()
+  @Min(0.01)
   @ApiProperty({
     example: 250.0,
     required: false,
     description: 'Novo valor do plano (opcional)',
+    minimum: 0.01,
   })
-  valor?: number;
+  valorPadrao?: number;
 }

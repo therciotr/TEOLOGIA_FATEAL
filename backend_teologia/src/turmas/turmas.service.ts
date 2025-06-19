@@ -1,71 +1,70 @@
 // src/turmas/turmas.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service'; // Usa PrismaService injetado
-import { Prisma } from '@prisma/client';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
+import { Prisma, Turma } from '@prisma/client';
 
 @Injectable()
 export class TurmasService {
+  private readonly logger = new Logger(TurmasService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Lista todas as turmas com seus planos associados.
-   */
-  async findAll() {
+  /* ───────────── READ ───────────── */
+  /** Lista todas as turmas com o plano associado */
+  async findAll(): Promise<Turma[]> {
     return this.prisma.turma.findMany({
-      include: {
-        plano: true,
-      },
+      include: { plano: true },
+      orderBy: { nome: 'asc' },
     });
   }
 
-  /**
-   * Retorna uma turma específica com plano associado.
-   * @param id ID da turma
-   */
-  async findOne(id: string) {
+  /** Busca turma por ID (com plano) */
+  async findOne(id: string): Promise<Turma> {
     const turma = await this.prisma.turma.findUnique({
       where: { id },
-      include: {
-        plano: true,
-      },
+      include: { plano: true },
     });
 
     if (!turma) {
       throw new NotFoundException(`Turma com ID ${id} não encontrada.`);
     }
-
     return turma;
   }
 
-  /**
-   * Cria uma nova turma.
-   * @param data Dados da nova turma
-   */
-  async create(data: Prisma.TurmaCreateInput) {
-    return this.prisma.turma.create({ data });
+  /* ───────────── CREATE ───────────── */
+  /** Cria nova turma */
+  async create(data: Prisma.TurmaCreateInput): Promise<Turma> {
+    try {
+      return await this.prisma.turma.create({ data });
+    } catch (error) {
+      this.logger.error('Erro ao criar turma', error);
+      throw new BadRequestException('Falha ao criar a turma.');
+    }
   }
 
-  /**
-   * Atualiza os dados de uma turma.
-   * @param id ID da turma
-   * @param data Dados atualizados
-   */
-  async update(id: string, data: Prisma.TurmaUpdateInput) {
-    await this.findOne(id); // Confirma existência antes de atualizar
+  /* ───────────── UPDATE ───────────── */
+  /** Atualiza dados da turma */
+  async update(
+    id: string,
+    data: Prisma.TurmaUpdateInput,
+  ): Promise<Turma> {
+    await this.findOne(id); // 404 se não existir
     return this.prisma.turma.update({
       where: { id },
       data,
     });
   }
 
-  /**
-   * Remove uma turma pelo ID.
-   * @param id ID da turma
-   */
-  async remove(id: string) {
-    await this.findOne(id); // Confirma existência antes de deletar
-    return this.prisma.turma.delete({
-      where: { id },
-    });
+  /* ───────────── DELETE ───────────── */
+  /** Remove turma pelo ID */
+  async remove(id: string): Promise<{ message: string }> {
+    await this.findOne(id); // 404 se não existir
+    await this.prisma.turma.delete({ where: { id } });
+    return { message: `Turma com ID ${id} removida com sucesso.` };
   }
 }

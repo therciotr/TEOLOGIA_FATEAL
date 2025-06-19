@@ -2,7 +2,7 @@
 import { PartialType } from '@nestjs/swagger';
 import { CreateTurmaDto } from './create-turma.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 
 /**
  * DTO para atualização parcial dos dados de uma turma.
@@ -10,7 +10,7 @@ import { IsOptional, IsString } from 'class-validator';
  */
 export class UpdateTurmaDto extends PartialType(CreateTurmaDto) {
   @IsOptional()
-  @IsString()
+  @IsString({ message: 'O nome deve ser uma string.' })
   @ApiProperty({
     example: 'Nova Turma A',
     required: false,
@@ -19,11 +19,12 @@ export class UpdateTurmaDto extends PartialType(CreateTurmaDto) {
   nome?: string;
 
   @IsOptional()
-  @IsString()
+  @IsUUID('4', { message: 'O planoId deve ser um UUID válido.' })
   @ApiProperty({
-    example: 'plano-id-uuid',
+    example: 'f1a447c1-5e2e-4f2a-a24a-d7814bd7e999',
     required: false,
-    description: 'Novo ID do plano vinculado (opcional)',
+    description: 'Novo ID do plano vinculado (UUID, opcional)',
+    format: 'uuid',
   })
   planoId?: string;
 }

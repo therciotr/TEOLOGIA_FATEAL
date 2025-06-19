@@ -1,10 +1,14 @@
 import { PartialType, ApiProperty } from '@nestjs/swagger';
 import { CreateDocumentoDto } from './create-documento.dto';
-import { IsOptional, IsString } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  Matches,
+} from 'class-validator';
 
 /**
  * DTO para atualização de documento.
- * Herda todos os campos do CreateDocumentoDto como opcionais.
+ * Herda os campos opcionais de CreateDocumentoDto.
  */
 export class UpdateDocumentoDto extends PartialType(CreateDocumentoDto) {
   @IsOptional()
@@ -18,9 +22,13 @@ export class UpdateDocumentoDto extends PartialType(CreateDocumentoDto) {
 
   @IsOptional()
   @IsString()
+  @Matches(/^\/?uploads\/documentos\/.+$/, {
+    message:
+      'URL inválida. Deve começar com /uploads/documentos/ e conter o nome do arquivo.',
+  })
   @ApiProperty({
-    example: 'uploads/documentos/contrato-matricula.pdf',
-    description: 'URL atualizada do documento (opcional)',
+    example: '/uploads/documentos/contrato-matricula.pdf',
+    description: 'Caminho/URL atualizado do arquivo (opcional)',
     required: false,
   })
   url?: string;

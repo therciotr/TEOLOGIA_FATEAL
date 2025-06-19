@@ -1,21 +1,24 @@
 import { Injectable } from '@nestjs/common';
+import { version } from '../package.json';
 
 /**
  * 📁 app.service.ts
- * 
- * Serviço simples que fornece informações básicas sobre o status da API.
+ * Serviço responsável por retornar o status básico da API.
  */
 @Injectable()
 export class AppService {
   /**
-   * 🔹 Retorna informações básicas de status da aplicação.
+   * Retorna informações úteis para verificação da aplicação.
    */
   getStatus(): Record<string, string> {
+    const env = process.env.NODE_ENV ?? 'development';
+
     return {
-      status: 'OK',                                  // Status geral da API
-      message: 'API do Projeto Teologia FATEAL funcionando!', // Mensagem de status
-      version: '1.0.0',                              // Versão da API
-      timestamp: new Date().toISOString(),           // Timestamp atual (ISO format)
+      status: 'OK', // API está funcional
+      message: 'API do Projeto Teologia FATEAL funcionando!',
+      version: version, // Versão vinda do package.json
+      environment: env,
+      timestamp: new Date().toISOString(),
     };
   }
 }

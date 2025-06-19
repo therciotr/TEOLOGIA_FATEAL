@@ -1,59 +1,85 @@
+// src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import {
+  ValidationPipe,
+  Logger,
+  VersioningType,
+} from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import helmet from 'helmet';
+import compression from 'compression';
+import { json, urlencoded } from 'express';
+import { PrismaService } from '@/prisma/prisma.service';
+import * as dotenv from 'dotenv';
 
-/**
- * 📁 main.ts
- * 
- * Arquivo de inicialização da aplicação NestJS.
- * Aqui configuramos: validações, filtros globais, interceptores e Swagger.
- */
 async function bootstrap() {
-  // Criação da aplicação com CORS habilitado
-  const app = await NestFactory.create(AppModule, { cors: true });
+  dotenv.config(); // 🔹 Garante leitura de .env antes de tudo
 
-  // 🔹 Logger global
-  const logger = new Logger('NestApp');
+  const app = await NestFactory.create(AppModule, {
+    cors: true,
+  });
 
-  // 🔹 Validação global para DTOs (com whitelisting e bloqueio de propriedades extras)
+  const logger = new Logger('NestBootstrap');
+
+  /* ───────────── Segurança & Performance ───────────── */
+  app.use(helmet());
+  app.use(compression());
+
+  app.enableCors({
+    origin: process.env.CORS_ORIGIN?.split(',') ?? '*',
+    credentials: true,
+  });
+
+  app.use(json({ limit: '5mb' }));
+  app.use(urlencoded({ extended: true }));
+
+  /* ───────────── Versão & Prefixo ───────────── */
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
+  });
+
+  app.setGlobalPrefix('v1');
+
+  /* ───────────── Validação global ───────────── */
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Remove propriedades não declaradas nos DTOs
-      forbidNonWhitelisted: true, // Bloqueia propriedades não permitidas
-      transform: true, // Transforma payloads para os tipos esperados nos DTOs
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
 
-  // 🔹 Filtro global para capturar e tratar exceções de forma unificada
+  /* ───────────── Filtros & Interceptores ───────────── */
   app.useGlobalFilters(new AllExceptionsFilter());
-
-  // 🔹 Interceptor global para logar requisições e respostas
   app.useGlobalInterceptors(new LoggingInterceptor());
 
-  // 🔹 Configuração do Swagger para documentação da API
-  const config = new DocumentBuilder()
+  /* ───────────── Swagger ───────────── */
+  const swaggerConfig = new DocumentBuilder()
     .setTitle('API Teologia FATEAL')
     .setDescription(
-      'Documentação da API para gestão de alunos, mensalidades, pagamentos e relatórios.',
+      'Documentação da API para gestão de alunos, mensalidades, pagamentos, planos, turmas e usuários.',
     )
-    .setVersion('1.0.0')
-    .addBearerAuth() // Adiciona o suporte a autenticação via Bearer Token
+    .setVersion(process.env.npm_package_version ?? '1.0.0')
+    .addBearerAuth()
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  const swaggerDoc = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api', app, swaggerDoc);
 
-  // 🔹 Porta configurada via variável de ambiente ou padrão 3000
-  const port = process.env.PORT || 3000;
+  /* ───────────── Shutdown graceful ───────────── */
+  const prismaService = app.get(PrismaService);
+  await prismaService.enableShutdownHooks(app);
 
-  // Inicia o servidor
+  /* ───────────── Inicialização ───────────── */
+  const port = parseInt(process.env.PORT ?? '3000', 10);
   await app.listen(port);
-  logger.log(`🚀 Aplicação rodando em: http://localhost:${port}`);
-  logger.log(`📚 Swagger disponível em: http://localhost:${port}/api`);
+
+  logger.log(`✅ Servidor rodando: http://localhost:${port}`);
+  logger.log(`📘 Swagger disponível em: http://localhost:${port}/api`);
 }
 
-// Inicializa a aplicação
 bootstrap();

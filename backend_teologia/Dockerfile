@@ -1,50 +1,65 @@
-# Etapa 1: Build
+# syntax=docker/dockerfile:1
+
+########################
+# Stage 0 – deps
+########################
+FROM node:20-alpine AS deps
+
+WORKDIR /app
+RUN apk add --no-cache openssl
+
+# dependências + Prisma Client
+COPY package*.json ./
+COPY prisma ./prisma
+ENV PRISMA_SKIP_POSTINSTALL_GENERATE=1
+RUN npm ci
+RUN npx prisma generate --schema=prisma/schema.prisma
+
+
+########################
+# Stage 1 – builder
+########################
 FROM node:20-alpine AS builder
 
 WORKDIR /app
-
-# Instalar OpenSSL para compatibilidade do Prisma
 RUN apk add --no-cache openssl
 
-# Copiar arquivos de dependências
-COPY package.json package-lock.json ./
-
-# Instalar dependências (ci é mais seguro para builds)
-RUN npm ci
-
-# Copiar arquivos de projeto
-COPY tsconfig.json ./
-COPY prisma ./prisma
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package*.json ./
+COPY --from=deps /app/prisma        ./prisma
+COPY tsconfig*.json ./
 COPY src ./src
+RUN mkdir -p firebase
+COPY firebase ./firebase
 
-# Gerar Prisma Client (⚠️ Essencial!)
-RUN npx prisma generate
+RUN npm run build --if-present
 
-# Compilar o projeto
-RUN npm run build
 
-# Etapa 2: Imagem final para produção
+########################
+# Stage 2 – runtime
+########################
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Instalar OpenSSL (necessário para Prisma em runtime)
-RUN apk add --no-cache openssl
+# artefatos necessários
+COPY --from=builder /app/dist          ./dist
+COPY --from=builder /app/node_modules  ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/prisma        ./prisma
 
-# Copiar build e dependências
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/prisma ./prisma
+# ↓ tudo a seguir precisa de permissão de escrita → faz como root
+USER root
+RUN npm prune --omit=dev && npm cache clean --force \
+ && addgroup -S app && adduser -S app -G app \
+ && chown -R app:app /app
 
-# (Opcional) Copiar o .env de produção diretamente
-# COPY .env.production .env
+USER app
 
-# Variáveis de ambiente padrão
 ENV NODE_ENV=production
-
-# Porta da API NestJS
 EXPOSE 3000
 
-# Comando padrão
-CMD ["node", "dist/main.js"]
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD \
+  node -e "require('http').get('http://localhost:3000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+
+CMD ["node", "dist/src/main.js"]

@@ -10,14 +10,12 @@ import {
 } from '@nestjs/common';
 import { ComprovantesService } from './comprovantes.service';
 import { Response } from 'express';
+import { Readable } from 'stream';
 
 @Controller('comprovantes')
 export class ComprovantesController {
   constructor(private readonly comprovantesService: ComprovantesService) {}
 
-  /**
-   * Gera e devolve o comprovante em PDF.
-   */
   @Get(':id')
   async gerarComprovante(
     @Param('id') id: string,
@@ -26,22 +24,19 @@ export class ComprovantesController {
     try {
       const pdfStream = await this.comprovantesService.gerarComprovante(id);
 
-      // Cabeçalhos HTTP
+      if (!(pdfStream instanceof Readable)) {
+        throw new InternalServerErrorException('Stream inválido.');
+      }
+
       res.set({
         'Content-Type': 'application/pdf',
         'Content-Disposition': `inline; filename=comprovante-${id}.pdf`,
       });
 
-      // Retorna o stream como StreamableFile (Nest cuida do pipe/end)
       return new StreamableFile(pdfStream);
     } catch (err) {
-      // Erro propagado do service (pagamento não encontrado)
       if (err instanceof NotFoundException) throw err;
-
-      // Outros erros (ex.: falha ao gerar PDF)
-      throw new InternalServerErrorException(
-        'Falha ao gerar comprovante. Tente novamente.',
-      );
+      throw new InternalServerErrorException('Falha ao gerar comprovante.');
     }
   }
 }

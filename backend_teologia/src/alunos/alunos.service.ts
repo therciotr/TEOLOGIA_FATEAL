@@ -1,113 +1,120 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+// src/alunos/alunos.service.ts
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateAlunoDto } from './dto/create-aluno.dto';
 import { UpdateAlunoDto } from './dto/update-aluno.dto';
+import { Firestore, WriteBatch } from 'firebase-admin/firestore';
+
+// ✅ token exportado em firebase/firebase.module.ts
+import { FIRESTORE_PROVIDER } from '@firebase/firebase.module';
 
 @Injectable()
 export class AlunosService {
+  private readonly logger = new Logger(AlunosService.name);
+
   constructor(
     private readonly prisma: PrismaService,
 
-    @Inject('FIRESTORE')
-    private readonly firestore: FirebaseFirestore.Firestore,
+    // injeta a instância de Firestore provida pelo módulo Firebase
+    @Inject(FIRESTORE_PROVIDER)
+    private readonly firestore: Firestore,
   ) {}
 
-  /** 🔹 Cria um novo aluno no banco relacional e replica no Firestore. */
-  async create(data: CreateAlunoDto) {
-    const aluno = await this.prisma.aluno.create({
-      data: {
-        ...data,
-        documentos: data.documentos?.length
-          ? {
-              create: data.documentos.map((doc) => ({
-                nome: doc.nome,
-                url: doc.url,
-              })),
-            }
-          : undefined,
-      },
-    });
-
-    await this.firestore
-      .collection('alunos')
-      .doc(aluno.id)
-      .set({
-        ...aluno,
-        createdAt: aluno.createdAt || new Date(),
+  /* ──────────────────────── CREATE ──────────────────────── */
+  /**
+   * Cria aluno no MySQL (Prisma) e replica no Firestore.
+   * Usa batch para garantir atomicidade no Firestore.
+   */
+  async create(dto: CreateAlunoDto) {
+    try {
+      const aluno = await this.prisma.aluno.create({
+        data: {
+          ...dto,
+          documentos: dto.documentos?.length
+            ? {
+                create: dto.documentos.map((d) => ({
+                  nome: d.nome,
+                  url: d.url,
+                })),
+              }
+            : undefined,
+        },
+        include: { documentos: true, turma: true },
       });
 
-    return aluno;
+      // Firestore dual-write
+      const batch = this.firestore.batch();
+      const docRef = this.firestore.collection('alunos').doc(aluno.id);
+      batch.set(docRef, { ...aluno, createdAt: aluno.createdAt ?? new Date() });
+      await batch.commit();
+
+      return aluno;
+    } catch (err) {
+      this.logger.error('Falha ao criar aluno', err);
+      throw new BadRequestException('Erro ao criar aluno.');
+    }
   }
 
-  /** 🔹 Lista todos os alunos com documentos e turma. */
+  /* ──────────────────────── READ ──────────────────────── */
   async findAll() {
     return this.prisma.aluno.findMany({
-      include: {
-        documentos: true,
-        turma: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      include: { documentos: true, turma: true },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
-  /** 🔹 Busca único aluno pelo ID. */
   async findOne(id: string) {
     const aluno = await this.prisma.aluno.findUnique({
       where: { id },
-      include: {
-        documentos: true,
-        turma: true,
-      },
+      include: { documentos: true, turma: true },
     });
-
-    if (!aluno) {
-      throw new NotFoundException('Aluno não encontrado');
-    }
-
+    if (!aluno) throw new NotFoundException('Aluno não encontrado.');
     return aluno;
   }
 
-  /** 🔹 Atualiza aluno e sincroniza dados no Firestore. */
-  async update(id: string, data: UpdateAlunoDto) {
+  /* ─────────────────────── UPDATE ─────────────────────── */
+  /**
+   * Atualiza aluno em ambas as bases.
+   * Remove todos os documentos antigos e cria os novos (padrão simples).
+   */
+  async update(id: string, dto: UpdateAlunoDto) {
     const aluno = await this.prisma.aluno.update({
       where: { id },
       data: {
-        ...data,
-        documentos: data.documentos
+        ...dto,
+        documentos: dto.documentos
           ? {
-              deleteMany: {}, // Remove todos os documentos antigos
-              create: data.documentos.map((doc) => ({
-                nome: doc.nome,
-                url: doc.url,
-              })),
+              deleteMany: {}, // limpa anteriores
+              create: dto.documentos.map((d) => ({ nome: d.nome, url: d.url })),
             }
           : undefined,
       },
-      include: {
-        documentos: true,
-        turma: true,
-      },
+      include: { documentos: true, turma: true },
     });
 
-    await this.firestore
-      .collection('alunos')
-      .doc(id)
-      .update({
-        ...aluno,
-        updatedAt: new Date(),
-      });
+    // Firestore dual-write
+    const batch: WriteBatch = this.firestore.batch();
+    const docRef = this.firestore.collection('alunos').doc(id);
+    batch.update(docRef, { ...aluno, updatedAt: new Date() });
+    await batch.commit();
 
     return aluno;
   }
 
-  /** 🔹 Exclui aluno do banco e do Firestore. */
+  /* ─────────────────────── DELETE ─────────────────────── */
   async remove(id: string) {
     await this.prisma.aluno.delete({ where: { id } });
 
-    await this.firestore.collection('alunos').doc(id).delete();
+    const batch = this.firestore.batch();
+    batch.delete(this.firestore.collection('alunos').doc(id));
+    await batch.commit();
 
-    return { message: `Aluno com ID ${id} removido com sucesso!` };
+    return { message: `Aluno ${id} removido com sucesso!` };
   }
 }

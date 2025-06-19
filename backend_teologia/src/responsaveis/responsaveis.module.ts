@@ -1,13 +1,20 @@
 // src/responsaveis/responsaveis.module.ts
 import { Module } from '@nestjs/common';
+import { PrismaModule } from '@/prisma/prisma.module';
 import { ResponsaveisService } from './responsaveis.service';
 import { ResponsaveisController } from './responsaveis.controller';
-import { PrismaModule } from '@/prisma/prisma.module';
 
+/**
+ * 📦 ResponsaveisModule
+ * Módulo responsável por gerenciar os responsáveis vinculados a alunos.
+ */
 @Module({
-  imports: [PrismaModule], // ✅ Prisma centralizado e reaproveitável
-  controllers: [ResponsaveisController], // ✅ Controller REST
-  providers: [ResponsaveisService],      // ✅ Service com regras de negócio
-  exports: [ResponsaveisService],        // ✅ Exportável para uso em outros módulos (ex: Alunos)
+  imports: [
+    PrismaModule, // ✅ Importa PrismaModule (global)
+    // AuthModule, // ⬅️ futuro: autenticação/guards
+  ],
+  controllers: [ResponsaveisController],
+  providers: [ResponsaveisService],
+  exports: [ResponsaveisService], // ✅ Exporta para outros módulos que usem responsável (como Alunos)
 })
 export class ResponsaveisModule {}

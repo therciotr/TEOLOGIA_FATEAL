@@ -1,6 +1,6 @@
 // src/planos/dto/create-plano.dto.ts
 
-import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 /**
@@ -17,9 +17,11 @@ export class CreatePlanoDto {
 
   @IsNotEmpty()
   @IsNumber()
+  @Min(0.01)
   @ApiProperty({
     example: 150.0,
-    description: 'Valor do plano em reais (R$)',
+    description: 'Valor padrão do plano em reais (R$)',
+    minimum: 0.01,
   })
-  valor: number;
+  valorPadrao: number;
 }

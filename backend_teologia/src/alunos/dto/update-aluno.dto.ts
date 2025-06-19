@@ -1,14 +1,20 @@
 // src/alunos/dto/update-aluno.dto.ts
-
-import { PartialType } from '@nestjs/swagger';
-import { CreateAlunoDto } from './create-aluno.dto';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsBoolean } from 'class-validator';
+import { PartialType, ApiProperty } from '@nestjs/swagger';
+import {
+  IsOptional,
+  IsString,
+  IsBoolean,
+  Matches,
+  ValidateNested,
+  ArrayMaxSize,
+  IsUrl,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { CreateAlunoDto, DocumentoDto } from './create-aluno.dto';
 
 /**
  * DTO para atualização de aluno.
- * 🔥 Herda todos os campos opcionais de CreateAlunoDto (PartialType).
- * 🔥 Inclui comentários e descrições detalhadas para documentação Swagger.
+ * 🔄 Baseado em CreateAlunoDto, com todos os campos opcionais via PartialType.
  */
 export class UpdateAlunoDto extends PartialType(CreateAlunoDto) {
   /**
@@ -18,7 +24,7 @@ export class UpdateAlunoDto extends PartialType(CreateAlunoDto) {
   @IsString()
   @ApiProperty({
     example: 'Rua das Palmeiras, 321',
-    description: 'Endereço completo do aluno (atualizado)',
+    description: 'Endereço atualizado do aluno',
     required: false,
   })
   endereco?: string;
@@ -27,30 +33,77 @@ export class UpdateAlunoDto extends PartialType(CreateAlunoDto) {
    * RG atualizado do aluno (opcional).
    */
   @IsOptional()
-  @IsString()
+  @Matches(/^\d{7,14}$/, {
+    message: 'RG deve conter apenas números (7-14 dígitos)',
+  })
   @ApiProperty({
     example: '98765432',
-    description: 'Número do RG do aluno (atualizado)',
+    description: 'Número do RG atualizado do aluno',
     required: false,
   })
   rg?: string;
 
   /**
-   * Status atualizado da matrícula do aluno.
-   * true = matrícula paga | false = matrícula não paga.
+   * CPF atualizado (opcional).
+   */
+  @IsOptional()
+  @Matches(/^\d{11}$/, {
+    message: 'CPF deve conter exatamente 11 dígitos',
+  })
+  @ApiProperty({
+    example: '98765432100',
+    description: 'Número do CPF (11 dígitos)',
+    required: false,
+  })
+  cpf?: string;
+
+  /**
+   * Status da matrícula (opcional).
    */
   @IsOptional()
   @IsBoolean()
   @ApiProperty({
-    example: true,
-    description: 'Status de matrícula (true = paga, false = pendente)',
+    example: false,
+    description: 'Matrícula paga (true) ou pendente (false)',
     required: false,
   })
   matriculaPaga?: boolean;
 
   /**
-   * 🔥 Importante!
-   * Campo `fotoUrl` herdado do CreateAlunoDto via PartialType.
-   * Necessário para o backend salvar a URL da foto após upload.
+   * Arquivo de foto atualizado (opcional).
    */
+  @IsOptional()
+  @ApiProperty({
+    description: 'Novo arquivo da foto 3x4 (multipart/form-data)',
+    type: 'string',
+    format: 'binary',
+    required: false,
+  })
+  foto3x4?: any;
+
+  /**
+   * Lista de documentos atualizados (opcional).
+   */
+  @IsOptional()
+  @ArrayMaxSize(10)
+  @ValidateNested({ each: true })
+  @Type(() => DocumentoDto)
+  @ApiProperty({
+    description: 'Lista de documentos atualizados',
+    type: [DocumentoDto],
+    required: false,
+  })
+  documentos?: DocumentoDto[];
+
+  /**
+   * URL final da nova foto (opcional).
+   */
+  @IsOptional()
+  @IsUrl(undefined, { message: 'URL inválida' })
+  @ApiProperty({
+    example: '/uploads/fotos/joao_nova.jpg',
+    description: 'URL final da nova foto (gerado pelo backend)',
+    required: false,
+  })
+  fotoUrl?: string;
 }
