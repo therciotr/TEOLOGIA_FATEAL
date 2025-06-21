@@ -1,12 +1,7 @@
-// postcss.config.js – Tailwind 4+ + Vite 6+
-
-import tailwind from '@tailwindcss/postcss';  // ✅ plugin correto
+// postcss.config.js
+import tailwindcss from 'tailwindcss';
 import autoprefixer from 'autoprefixer';
 
-/** @type {import('postcss-load-config').Config} */
 export default {
-  plugins: [
-    tailwind,
-    autoprefixer,
-  ],
+  plugins: [tailwindcss, autoprefixer],
 };

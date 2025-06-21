@@ -1,112 +1,127 @@
-import React, { useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Menu } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { menuItems } from '@/config/menu';
+import React, { useEffect } from "react";
+import { NavLink } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { menuItems } from "@/config/menu";
+
+// Se quiser agrupar de maneira diferente, basta alterar esta função
+const getSections = () => [
+  {
+    title: "Geral",
+    items: menuItems.filter((i) => !i.public).slice(0, 3),
+  },
+  {
+    title: "Administração",
+    items: menuItems.filter((i) => !i.public).slice(3),
+  },
+];
 
 type SidebarProps = {
   isOpen: boolean;
   toggle: () => void;
 };
 
-// Organiza os itens por seção (opcional)
-const sections = [
-  {
-    title: 'Geral',
-    items: menuItems.filter((item) => !item.public).slice(0, 3), // Dashboard, Alunos, Mensalidades
-  },
-  {
-    title: 'Administração',
-    items: menuItems.filter((item) => !item.public).slice(3), // Relatórios, Pagamentos, etc.
-  },
-];
-
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle }) => {
-  const sidebarVariants = {
-    closed: { x: '-100%' },
-    open: { x: 0 },
+  /* ------------------------------------------------------------------ */
+  /* Keyboard ESC → fecha drawer apenas em telas pequenas                */
+  /* ------------------------------------------------------------------ */
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && window.innerWidth < 1024) toggle();
+    };
+
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [isOpen, toggle]);
+
+  /* ------------------------------------------------------------------ */
+  /* Framer Motion variants                                             */
+  /* ------------------------------------------------------------------ */
+  const drawer = {
+    hidden: { x: "-100%" },
+    show: { x: 0 },
+    exit: { x: "-100%" },
   };
 
-  // Fecha ao pressionar ESC
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') toggle();
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, [toggle]);
+  const sections = getSections();
 
   return (
     <>
-      {/* Botão hambúrguer (mobile) */}
+      {/* Botão hambúrguer (só aparece em telas < lg) */}
       <Button
         variant="ghost"
         size="icon"
         className="fixed top-4 left-4 z-50 lg:hidden"
         onClick={toggle}
+        aria-expanded={isOpen}
         aria-label="Abrir menu"
       >
         <Menu size={22} />
       </Button>
 
-      {/* Overlay escuro para mobile */}
+      {/* Overlay escurecido — fecha ao clicar fora */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             key="overlay"
+            className="fixed inset-0 z-40 bg-black/40 lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.4 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             onClick={toggle}
-            className="fixed inset-0 z-30 bg-black bg-opacity-40 lg:hidden"
+            tabIndex={-1}
           />
         )}
       </AnimatePresence>
 
-      {/* Sidebar (Drawer) */}
+      {/* Sidebar */}
       <AnimatePresence>
-        {isOpen && (
+        {(isOpen || window.innerWidth >= 1024) && (
           <motion.aside
             key="sidebar"
-            initial="closed"
-            animate="open"
-            exit="closed"
-            variants={sidebarVariants}
-            transition={{ type: 'spring', stiffness: 260, damping: 25 }}
-            className="fixed lg:static z-40 w-64 h-full bg-slate-800 dark:bg-slate-900 text-white p-6 flex flex-col gap-6 shadow-lg lg:shadow-none"
+            role="navigation"
+            className="fixed lg:static z-50 w-64 h-full bg-slate-800 dark:bg-slate-900 text-white p-6 flex flex-col gap-6 shadow-lg lg:shadow-none"
+            variants={drawer}
+            initial="hidden"
+            animate="show"
+            exit="exit"
+            transition={{ type: "spring", stiffness: 260, damping: 24 }}
           >
-            <h2 className="text-lg font-bold tracking-wide text-white">
-              Painel FATEAL
-            </h2>
+            <h2 className="text-lg font-bold tracking-wide">Painel FATEAL</h2>
 
-            {/* Navegação organizada por seções */}
-            {sections.map((section) => (
-              <div key={section.title}>
+            {sections.map(({ title, items }) => (
+              <section key={title}>
                 <p className="text-xs uppercase tracking-wide text-slate-400 mb-2">
-                  {section.title}
+                  {title}
                 </p>
+
                 <ul className="space-y-2">
-                  {section.items.map(({ to, label, icon: Icon }) => (
+                  {items.map(({ to, label, icon: Icon }) => (
                     <li key={to}>
                       <NavLink
                         to={to}
-                        onClick={toggle} // Fecha no mobile
+                        end
+                        onClick={() => window.innerWidth < 1024 && toggle()}
                         className={({ isActive }) =>
-                          `flex items-center gap-3 px-4 py-2 rounded-md transition-colors duration-200 ${
+                          [
+                            "flex items-center gap-3 px-4 py-2 rounded-md transition-colors duration-200",
                             isActive
-                              ? 'bg-indigo-600 text-white'
-                              : 'text-slate-300 hover:bg-slate-700'
-                          }`
+                              ? "bg-indigo-600 text-white"
+                              : "text-slate-300 hover:bg-slate-700",
+                          ].join(" ")
                         }
                       >
-                        <Icon size={18} />
+                        <Icon size={18} aria-hidden />
                         <span className="hidden lg:inline">{label}</span>
                       </NavLink>
                     </li>
                   ))}
                 </ul>
-              </div>
+              </section>
             ))}
           </motion.aside>
         )}

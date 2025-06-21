@@ -1,37 +1,34 @@
 // src/main.tsx
 import React, { StrictMode, Suspense } from 'react';
-import { createRoot }        from 'react-dom/client';
-import { BrowserRouter }     from 'react-router-dom';
+import { createRoot }      from 'react-dom/client';
+import { BrowserRouter }   from 'react-router-dom';
 
-import App           from './App';
-import './index.css';
+import App                 from './App';
+import './index.css';                    // importa Tailwind + estilos globais
 
-/* —— Providers globais ————————————————————— */
-import { ToastProvider } from '@/components/ui/toast';      // notifications
-import { AuthProvider  } from '@/hooks/useAuth';            // contexto de sessão/login
-import { Spinner       } from '@/components/ui/spinner';    // loading global
-//                    ▲  ╰── pasta/arquivo em minúsculo *exatamente*
-//                       (Linux diferencia maiúsc/minúsc)
+/* ▸ Providers globais ------------------------------------ */
+import { ToastProvider }   from '@/components/ui/toast';
+import { AuthProvider }    from '@/hooks/useAuth';
+import { Spinner }         from '@/components/ui/spinner';
 
-/* —— Mount point ———————————————————————— */
+/* ▸ Montagem (React 18) ---------------------------------- */
 const rootEl = document.getElementById('root');
 
 if (!rootEl) {
-  throw new Error(
-    '❌ <div id="root"></div> não encontrado em index.html - verifique a estrutura!',
+  // Fall-back simples → evita throw em produção
+  console.error('<div id="root"> não encontrado em index.html');
+} else {
+  createRoot(rootEl).render(
+    <StrictMode>
+      <BrowserRouter basename={import.meta.env.BASE_URL ?? '/'}>
+        <ToastProvider>
+          <AuthProvider>
+            <Suspense fallback={<Spinner className="mx-auto mt-10 h-8 w-8" />}>
+              <App />
+            </Suspense>
+          </AuthProvider>
+        </ToastProvider>
+      </BrowserRouter>
+    </StrictMode>,
   );
 }
-
-createRoot(rootEl).render(
-  <StrictMode>
-    <BrowserRouter basename={import.meta.env.BASE_URL ?? '/'}>
-      <ToastProvider>
-        <AuthProvider>
-          <Suspense fallback={<Spinner className="mx-auto mt-10" />}>
-            <App />
-          </Suspense>
-        </AuthProvider>
-      </ToastProvider>
-    </BrowserRouter>
-  </StrictMode>,
-);
