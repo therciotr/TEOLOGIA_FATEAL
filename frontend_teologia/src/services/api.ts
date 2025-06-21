@@ -1,42 +1,81 @@
-import axios from "axios";
-import { toast } from "sonner"; // Exibe mensagens amigáveis
+// src/services/api.ts
+/* ------------------------------------------------------------------------- */
+/* Axios + helpers para comunicação com a API REST                           */
+/* ------------------------------------------------------------------------- */
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { toast } from "sonner";               // se preferir, troque por react-hot-toast
+import type { Mensalidade } from "@/types/Mensalidade";
 
-// Define a base da API (você pode trocar para variável de ambiente no futuro)
-const BASE_URL = "https://fateal.trsystemas.com.br/api";
+/* ------------------------------------------------------------------------- */
+/* 1. Configurações básicas                                                  */
+/* ------------------------------------------------------------------------- */
+// ➜ Usa variável de ambiente em modo dev/prod e cai no domínio público como
+//    fallback (útil em build estático ou Storybook).
+const BASE_URL =
+  import.meta.env.VITE_API_URL ??
+  "https://fateal.trsystemas.com.br/api";
 
-// Instância central do axios
 export const api = axios.create({
   baseURL: BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  headers: { "Content-Type": "application/json" },
+  withCredentials: true,          // envia cookie se backend exigir
 });
 
-// Interceptor para adicionar o token JWT automaticamente
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+/* ------------------------------------------------------------------------- */
+/* 2. Helpers de autenticação                                                */
+/* ------------------------------------------------------------------------- */
+export function setAuthToken(token: string | null) {
+  if (token) localStorage.setItem("token", token);
+  else       localStorage.removeItem("token");
+}
 
-// Interceptor global de erros (feedback + ações)
+function attachToken(config: InternalAxiosRequestConfig) {
+  const token = localStorage.getItem("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+}
+
+/* ------------------------------------------------------------------------- */
+/* 3. Interceptores globais                                                  */
+/* ------------------------------------------------------------------------- */
+api.interceptors.request.use(attachToken);
+
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Mostra erro genérico
-    const msg = error?.response?.data?.message || "Erro ao se comunicar com o servidor.";
-    toast.error(`Erro: ${msg}`);
+  (res) => res,
+  (err: AxiosError<{ message?: string }>) => {
+    const status = err.response?.status;
+    const msg    =
+      err.response?.data?.message ??
+      err.message ??
+      "Erro ao se comunicar com o servidor.";
 
-    // Ações específicas para erros de autenticação
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      toast.error("Sessão expirada. Faça login novamente.");
-      localStorage.removeItem("token");
-      window.location.href = "/login"; // Redireciona para login
+    toast.error(msg);
+
+    // Desloga se token expirou ou for inválido
+    if (status === 401 || status === 403) {
+      setAuthToken(null);
+      toast.error("Sessão expirada, faça login novamente.");
+      window.location.href = "/login";
     }
-
-    return Promise.reject(error);
-  }
+    return Promise.reject(err);
+  },
 );
+
+/* ------------------------------------------------------------------------- */
+/* 4. Serviços de domínio (exemplo: Mensalidades)                            */
+/*    Você pode dividir em arquivos menores depois; aqui fica compacto.      */
+/* ------------------------------------------------------------------------- */
+
+/**
+ * Obtém todas as mensalidades.
+ * Pode ser refinado com paginação ou filtros quando necessário.
+ */
+export async function getMensalidades(): Promise<Mensalidade[]> {
+  const { data } = await api.get<Mensalidade[]>("/mensalidades");
+  return data;
+}
+
+/* ------------------------------------------------------------------------- */
+/* 5. Exporte outros helpers quando precisar                                 */
+/* ------------------------------------------------------------------------- */
+export default api;   // import default é prático: `import api from "@/services/api"`

@@ -1,40 +1,55 @@
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
     react({
-      // ✅ Habilita fast refresh e melhorias de dev
-      jsxRuntime: 'automatic',
+      include: '**/*.{ts,tsx}', 
     }),
   ],
+
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'), // ✅ Permite importações com "@/"
+      '@': resolve(__dirname, 'src'),
     },
   },
+
   css: {
     preprocessorOptions: {
-      // ✅ Se quiser usar SCSS no futuro
       scss: {
-        additionalData: `@import "@/styles/variables.scss";`, // opcional
+        additionalData: `@import "@/styles/variables.scss";`, 
       },
     },
   },
+
   server: {
+    host: '0.0.0.0', 
     port: 5173,
-    open: true, // ✅ Abre o navegador automaticamente
+    open: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000', // 🔁 Redireciona chamadas da API para backend NestJS
+        target: 'http://localhost:3000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''), // ✅ Remove o prefixo "/api" nas rotas
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },
+
   build: {
-    outDir: 'dist', // ✅ Pasta de saída padrão
-    sourcemap: false, // ✅ Pode ativar true para debug
+    outDir: 'dist',
+    sourcemap: false,
+    target: 'esnext',
+    assetsInlineLimit: 4096, 
+  },
+
+  preview: {
+    port: 4173,
+    open: true,
   },
 });

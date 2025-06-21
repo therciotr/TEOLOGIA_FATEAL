@@ -10,15 +10,24 @@ exports.AppService = void 0;
 const common_1 = require("@nestjs/common");
 const package_json_1 = require("../package.json");
 let AppService = class AppService {
+    constructor() {
+        this.startedAt = Date.now();
+    }
     getStatus() {
-        var _a;
-        const env = (_a = process.env.NODE_ENV) !== null && _a !== void 0 ? _a : 'development';
+        var _a, _b;
+        const now = Date.now();
         return {
-            status: 'OK',
+            status: 'ok',
             message: 'API do Projeto Teologia FATEAL funcionando!',
-            version: package_json_1.version,
-            environment: env,
-            timestamp: new Date().toISOString(),
+            version: (_a = process.env.npm_package_version) !== null && _a !== void 0 ? _a : package_json_1.version,
+            commit: process.env.COMMIT_SHA,
+            environment: ((_b = process.env.NODE_ENV) !== null && _b !== void 0 ? _b : 'development'),
+            port: process.env.PORT ? Number(process.env.PORT) : undefined,
+            uptime: Math.floor((now - this.startedAt) / 1000),
+            startedAt: new Date(this.startedAt).toISOString(),
+            timestamp: new Date(now).toISOString(),
+            node: process.version,
+            memoryUsage: process.memoryUsage(),
         };
     }
 };

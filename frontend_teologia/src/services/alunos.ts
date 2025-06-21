@@ -1,56 +1,86 @@
+// src/services/alunos.ts
 import { api } from "./api";
-import { Aluno } from "@/types/Aluno";
+import type { Aluno } from "@/types/Aluno";
+
+/* ─────────── Tipos auxiliares ─────────── */
+export type AlunoPayload = Omit<Aluno, "id" | "createdAt" | "updatedAt">;
 
 /**
- * Serviço para operações com alunos.
- * Funções organizadas e retornam apenas os dados úteis.
+ * Constrói cabeçalhos adequados se o payload for FormData.
  */
+function buildHeaders(body: unknown) {
+  return body instanceof FormData
+    ? { "Content-Type": "multipart/form-data" }
+    : undefined;
+}
+
+/* ─────────── CRUD isolado (named exports) ─────────── */
+
+export async function listAlunos(): Promise<Aluno[]> {
+  const { data } = await api.get<Aluno[]>("/alunos");
+  return data;
+}
+
+export async function getAluno(id: string): Promise<Aluno> {
+  const { data } = await api.get<Aluno>(`/alunos/${id}`);
+  return data;
+}
+
+export async function createAluno(body: AlunoPayload | FormData): Promise<Aluno> {
+  const { data } = await api.post<Aluno>("/alunos", body, {
+    headers: buildHeaders(body),
+  });
+  return data;
+}
+
+export async function updateAluno(
+  id: string,
+  body: Partial<AlunoPayload> | FormData,
+): Promise<Aluno> {
+  const { data } = await api.patch<Aluno>(`/alunos/${id}`, body, {
+    headers: buildHeaders(body),
+  });
+  return data;
+}
+
+export async function deleteAluno(id: string): Promise<void> {
+  await api.delete(`/alunos/${id}`);
+}
+
+/* ─────────── Extras opcionais ─────────── */
+
+/** Upload de foto - retorna a URL gerada pelo backend */
+export async function uploadFoto(id: string, file: File): Promise<string> {
+  const form = new FormData();
+  form.append("foto", file);
+
+  const { data } = await api.post<{ url: string }>(
+    `/alunos/${id}/foto`,
+    form,
+    { headers: buildHeaders(form) },
+  );
+  return data.url;
+}
+
+/** Busca paginada/filtrada (exemplo genérico) */
+export async function searchAlunos(query = "", page = 1, limit = 10) {
+  const { data } = await api.get<{
+    items: Aluno[];
+    total: number;
+    page: number;
+    limit: number;
+  }>("/alunos/search", { params: { q: query, page, limit } });
+  return data;
+}
+
+/* ─────────── Wrapper estilo “service” ─────────── */
+
 export const AlunoService = {
-  /**
-   * Lista todos os alunos.
-   */
-  getAlunos: async (): Promise<Aluno[]> => {
-    const response = await api.get<Aluno[]>("/alunos");
-    return response.data;
-  },
-
-  /**
-   * Busca um aluno pelo ID.
-   * @param id - ID do aluno
-   */
-  getAluno: async (id: string): Promise<Aluno> => {
-    const response = await api.get<Aluno>(`/alunos/${id}`);
-    return response.data;
-  },
-
-  /**
-   * Cria um novo aluno.
-   * @param data - FormData contendo os dados do aluno
-   */
-  createAluno: async (data: FormData): Promise<Aluno> => {
-    const response = await api.post<Aluno>("/alunos", data, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return response.data;
-  },
-
-  /**
-   * Atualiza os dados de um aluno.
-   * @param id - ID do aluno
-   * @param data - FormData com os dados atualizados
-   */
-  updateAluno: async (id: string, data: FormData): Promise<Aluno> => {
-    const response = await api.patch<Aluno>(`/alunos/${id}`, data, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return response.data;
-  },
-
-  /**
-   * Remove um aluno.
-   * @param id - ID do aluno
-   */
-  deleteAluno: async (id: string): Promise<void> => {
-    await api.delete(`/alunos/${id}`);
-  },
+  listAlunos,
+  getAluno,
+  createAluno,
+  updateAluno,
+  deleteAluno,
+  uploadFoto,
+  searchAlunos,
 };

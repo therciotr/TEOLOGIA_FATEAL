@@ -1,49 +1,60 @@
-// ──────────────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────
 // src/services/mensalidades.ts
-// Serviço + hooks (React Query opcional)
-// ──────────────────────────────────────────────────────
-import { api } from "./api";
-import { Mensalidade } from "@/types/Mensalidade";
+// Serviço REST + hooks (opcional) para Mensalidades
+// ──────────────────────────────────────────────────────────────
+import api from "@/services/api";               // alias absoluto
+import type { Mensalidade } from "@/types/Mensalidade";
+import type { AxiosResponse } from "axios";
 
-// ─── Tipagem auxiliar para respostas genéricas ────────
-type ApiResponse<T> = Promise<{ data: T }>;
+/* ------------------------------------------------------------- */
+/*  1. Tipagens auxiliares                                       */
+/* ------------------------------------------------------------- */
+type ServiceResult<T> = Promise<T>;
 
-/* #####################################################
- *  Requests REST puros
- * ################################################### */
+interface ListParams {
+  alunoId?: string;
+  status?: "pago" | "pendente";
+  page?: number;
+  perPage?: number;
+}
 
-/** Lista mensalidades (com filtros opcionais). */
-const getMensalidades = (
-  params?: Partial<{
-    alunoId: string;
-    status: "pago" | "pendente";
-    page: number;
-    perPage: number;
-  }>
-): ApiResponse<Mensalidade[]> => api.get("/mensalidades", { params });
+/* ------------------------------------------------------------- */
+/*  2. Chamadas REST puras                                       */
+/* ------------------------------------------------------------- */
+async function getMensalidades(
+  params?: ListParams,
+): ServiceResult<Mensalidade[]> {
+  const { data } = await api.get<Mensalidade[]>("/mensalidades", { params });
+  return data;
+}
 
-/** Detalhe de uma mensalidade. */
-const getMensalidade = (id: string): ApiResponse<Mensalidade> =>
-  api.get(`/mensalidades/${id}`);
+async function getMensalidade(id: string): ServiceResult<Mensalidade> {
+  const { data } = await api.get<Mensalidade>(`/mensalidades/${id}`);
+  return data;
+}
 
-/** Cria mensalidade. */
-const createMensalidade = (
-  payload: Partial<Mensalidade>
-): ApiResponse<Mensalidade> => api.post("/mensalidades", payload);
+async function createMensalidade(
+  payload: Partial<Mensalidade>,
+): ServiceResult<Mensalidade> {
+  const { data } = await api.post<Mensalidade>("/mensalidades", payload);
+  return data;
+}
 
-/** Atualiza mensalidade. */
-const updateMensalidade = (
+async function updateMensalidade(
   id: string,
-  payload: Partial<Mensalidade>
-): ApiResponse<Mensalidade> => api.put(`/mensalidades/${id}`, payload);
+  payload: Partial<Mensalidade>,
+): ServiceResult<Mensalidade> {
+  const { data } = await api.put<Mensalidade>(`/mensalidades/${id}`, payload);
+  return data;
+}
 
-/** Remove mensalidade. */
-const deleteMensalidade = (id: string): ApiResponse<void> =>
-  api.delete(`/mensalidades/${id}`);
+async function deleteMensalidade(id: string): ServiceResult<void> {
+  await api.delete(`/mensalidades/${id}`);
+}
 
-/* #####################################################
- *  Exporta em um único objeto (import elegante)
- * ################################################### */
+/* ------------------------------------------------------------- */
+/*  3. Export principal                                          */
+/* ------------------------------------------------------------- */
 export const mensalidadeService = {
   getMensalidades,
   getMensalidade,
@@ -52,22 +63,29 @@ export const mensalidadeService = {
   deleteMensalidade,
 };
 
-/* #####################################################
- *  React-Query hooks (✨ opcional)
- * ################################################### */
-//
-//  ▸ Para usar: instale @tanstack/react-query e envolva
-//    seu App com <QueryClientProvider>.
-//
-//  ▸ Se não pretende usar agora, basta ignorar a
-//    exportação dos hooks abaixo.
-//
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+export default mensalidadeService; // permite `import mensalidadeService from ...`
 
-export const useMensalidades = (params?: Parameters<typeof getMensalidades>[0]) =>
+/* ############################################################# */
+/*  4. Hooks prontos (React-Query) – use se quiser               */
+/* ############################################################# */
+//
+// Para usar, instale:
+//
+//   pnpm add @tanstack/react-query
+//
+// e envolva o App com <QueryClientProvider>.  Caso não use,
+// basta remover o bloco abaixo.
+//
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+
+export const useMensalidades = (params?: ListParams) =>
   useQuery({
     queryKey: ["mensalidades", params],
-    queryFn: () => getMensalidades(params).then((r) => r.data),
+    queryFn: () => getMensalidades(params),
   });
 
 export const useCreateMensalidade = () => {

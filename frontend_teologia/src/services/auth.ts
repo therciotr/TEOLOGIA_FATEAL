@@ -1,5 +1,6 @@
 // src/services/auth.ts
-import jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";   
+import type { JwtPayload } from "jwt-decode";
 import { api } from "./api";
 
 /* ------------------------------------------------------------------

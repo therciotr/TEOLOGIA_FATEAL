@@ -4,28 +4,23 @@
     "module": "ESNext",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "jsx": "react-jsx",
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-
-    // ✅ Suporte a @/ para importar como 'import x from "@/components/x"'
     "baseUrl": "./src",
     "paths": {
       "@/*": ["*"]
     },
-
-    // ✅ Boa prática de compatibilidade e performance
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-
-    // ✅ Outras flags úteis
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "isolatedModules": true,
-    "noEmit": true,
     "useDefineForClassFields": true,
+    "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": ["src", "vite-env.d.ts"],
+  "exclude": ["node_modules", "dist"]
 }

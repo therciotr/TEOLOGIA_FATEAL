@@ -1,52 +1,39 @@
-// src/app.controller.ts
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiOkResponse,
-} from '@nestjs/swagger';
+import { AppService, StatusPayload } from './app.service';
+import { ApiTags, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
 
-/**
- * Controlador principal – status e health-check.
- *
- * NOTA:
- * • `path: ''` ➜ NÃO há “v1” aqui; o Nest acrescenta via versionamento URI.
- * • `version: '1'` ➜ rotas expostas em /v1/...
- */
 @ApiTags('App')
 @Controller({ path: '', version: '1' })
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  /** GET /v1  ── status resumido (usado em landing pages ou verificações simples). */
+  /** GET /v1 ─ status simples */
   @Get()
-  @ApiOperation({ summary: 'Status da API (root)' })
-  @ApiOkResponse({
-    description: 'API online',
-    schema: {
-      example: { status: 'ok' },
-    },
-  })
-  getRoot() {
+  @ApiOperation({ summary: 'Status resumido da API (root)' })
+  @ApiOkResponse({ schema: { example: { status: 'ok' } } })
+  getRoot(): { status: 'ok' } {
     return { status: 'ok' };
   }
 
-  /** GET /v1/status ── health-check completo. */
+  /** GET /v1/status ─ health-check completo */
   @Get('status')
   @ApiOperation({ summary: 'Health-check detalhado' })
   @ApiOkResponse({
-    description: 'Informações de saúde da aplicação',
     schema: {
       example: {
         status: 'ok',
-        uptime: 123.45,
-        timestamp: '2025-06-19T17:14:32.123Z',
+        message: 'API do Projeto Teologia FATEAL funcionando!',
         version: '1.0.0',
+        environment: 'production',
+        port: 3000,
+        uptime: 123,
+        startedAt: '2025-06-19T17:14:32.123Z',
+        timestamp: '2025-06-19T17:16:55.000Z',
+        node: 'v20.18.3',
       },
     },
   })
-  getStatus() {
+  getStatus(): StatusPayload {
     return this.appService.getStatus();
   }
 }

@@ -18,7 +18,7 @@ let AppController = class AppController {
         this.appService = appService;
     }
     getRoot() {
-        return this.appService.getStatus();
+        return { status: 'ok' };
     }
     getStatus() {
         return this.appService.getStatus();
@@ -27,20 +27,36 @@ let AppController = class AppController {
 exports.AppController = AppController;
 __decorate([
     (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Status da API (rota raiz)' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Status resumido da API (root)' }),
+    (0, swagger_1.ApiOkResponse)({ schema: { example: { status: 'ok' } } }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Object)
 ], AppController.prototype, "getRoot", null);
 __decorate([
-    (0, common_1.Get)('/status'),
-    (0, swagger_1.ApiOperation)({ summary: 'Verifica status e informações do servidor' }),
+    (0, common_1.Get)('status'),
+    (0, swagger_1.ApiOperation)({ summary: 'Health-check detalhado' }),
+    (0, swagger_1.ApiOkResponse)({
+        schema: {
+            example: {
+                status: 'ok',
+                message: 'API do Projeto Teologia FATEAL funcionando!',
+                version: '1.0.0',
+                environment: 'production',
+                port: 3000,
+                uptime: 123,
+                startedAt: '2025-06-19T17:14:32.123Z',
+                timestamp: '2025-06-19T17:16:55.000Z',
+                node: 'v20.18.3',
+            },
+        },
+    }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Object)
 ], AppController.prototype, "getStatus", null);
 exports.AppController = AppController = __decorate([
     (0, swagger_1.ApiTags)('App'),
-    (0, common_1.Controller)({ version: '1' }),
+    (0, common_1.Controller)({ path: '', version: '1' }),
     __metadata("design:paramtypes", [app_service_1.AppService])
 ], AppController);

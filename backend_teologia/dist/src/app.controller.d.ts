@@ -1,7 +1,9 @@
-import { AppService } from './app.service';
+import { AppService, StatusPayload } from './app.service';
 export declare class AppController {
     private readonly appService;
     constructor(appService: AppService);
-    getRoot(): object;
-    getStatus(): object;
+    getRoot(): {
+        status: 'ok';
+    };
+    getStatus(): StatusPayload;
 }

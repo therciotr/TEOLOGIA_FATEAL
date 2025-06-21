@@ -40,53 +40,47 @@ const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
-const all_exceptions_filter_1 = require("./common/filters/all-exceptions.filter");
-const logging_interceptor_1 = require("./common/interceptors/logging.interceptor");
 const helmet_1 = __importDefault(require("helmet"));
 const compression_1 = __importDefault(require("compression"));
 const express_1 = require("express");
+const all_exceptions_filter_1 = require("./common/filters/all-exceptions.filter");
+const logging_interceptor_1 = require("./common/interceptors/logging.interceptor");
 const prisma_service_1 = require("./prisma/prisma.service");
+const core_2 = require("@nestjs/core");
 const dotenv = __importStar(require("dotenv"));
 async function bootstrap() {
-    var _a, _b, _c, _d;
+    var _a, _b, _c;
     dotenv.config();
-    const app = await core_1.NestFactory.create(app_module_1.AppModule, {
-        cors: true,
-    });
-    const logger = new common_1.Logger('NestBootstrap');
-    app.use((0, helmet_1.default)());
+    const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    const log = new common_1.Logger('Bootstrap');
+    const port = Number(process.env.PORT) || 3000;
+    const hostUrl = (_a = process.env.APP_URL) !== null && _a !== void 0 ? _a : `http://localhost:${port}`;
+    app.use((0, helmet_1.default)({ contentSecurityPolicy: false }));
     app.use((0, compression_1.default)());
-    app.enableCors({
-        origin: (_b = (_a = process.env.CORS_ORIGIN) === null || _a === void 0 ? void 0 : _a.split(',')) !== null && _b !== void 0 ? _b : '*',
-        credentials: true,
-    });
-    app.use((0, express_1.json)({ limit: '5mb' }));
-    app.use((0, express_1.urlencoded)({ extended: true }));
-    app.enableVersioning({
-        type: common_1.VersioningType.URI,
-        defaultVersion: '1',
-    });
-    app.setGlobalPrefix('v1');
-    app.useGlobalPipes(new common_1.ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-    }));
+    const { httpAdapter } = app.get(core_2.HttpAdapterHost);
+    if ('getInstance' in httpAdapter) {
+        httpAdapter.getInstance().set('trust proxy', true);
+    }
+    app.use((0, express_1.json)({ limit: '10mb' }));
+    app.use((0, express_1.urlencoded)({ extended: true, limit: '10mb' }));
+    const corsOrigins = ((_b = process.env.CORS_ORIGIN) !== null && _b !== void 0 ? _b : '*')
+        .split(',')
+        .map(o => o.trim())
+        .filter(Boolean);
+    app.enableCors({ origin: corsOrigins.length ? corsOrigins : '*', credentials: true });
+    app.enableVersioning({ type: common_1.VersioningType.URI, defaultVersion: '1' });
+    app.useGlobalPipes(new common_1.ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
     app.useGlobalFilters(new all_exceptions_filter_1.AllExceptionsFilter());
     app.useGlobalInterceptors(new logging_interceptor_1.LoggingInterceptor());
-    const swaggerConfig = new swagger_1.DocumentBuilder()
+    const cfg = new swagger_1.DocumentBuilder()
         .setTitle('API Teologia FATEAL')
-        .setDescription('Documentação da API para gestão de alunos, mensalidades, pagamentos, planos, turmas e usuários.')
         .setVersion((_c = process.env.npm_package_version) !== null && _c !== void 0 ? _c : '1.0.0')
         .addBearerAuth()
         .build();
-    const swaggerDoc = swagger_1.SwaggerModule.createDocument(app, swaggerConfig);
-    swagger_1.SwaggerModule.setup('api', app, swaggerDoc);
-    const prismaService = app.get(prisma_service_1.PrismaService);
-    await prismaService.enableShutdownHooks(app);
-    const port = parseInt((_d = process.env.PORT) !== null && _d !== void 0 ? _d : '3000', 10);
-    await app.listen(port);
-    logger.log(`✅ Servidor rodando: http://localhost:${port}`);
-    logger.log(`📘 Swagger disponível em: http://localhost:${port}/api`);
+    swagger_1.SwaggerModule.setup('api', app, swagger_1.SwaggerModule.createDocument(app, cfg));
+    await app.get(prisma_service_1.PrismaService).enableShutdownHooks(app);
+    await app.listen(port, '0.0.0.0');
+    log.log(`🚀  API:     ${hostUrl}/v1/status`);
+    log.log(`📘  Swagger: ${hostUrl}/api`);
 }
 bootstrap();
