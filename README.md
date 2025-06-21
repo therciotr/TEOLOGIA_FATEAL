@@ -175,3 +175,4 @@ VITE_API_URL=http://localhost:3000
 
 ⚡ Projeto completo, modular e pronto para escalar.  
 🚀 Que a jornada comece com excelência!
+Deploy automático testado em Fri 20 Jun 2025 11:08:01 PM -03
