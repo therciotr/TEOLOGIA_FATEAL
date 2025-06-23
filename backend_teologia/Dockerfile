@@ -1,7 +1,5 @@
-# syntax=docker/dockerfile:1
-
 ########################
-# Stage 0 – deps
+# Stage 0 – dependências
 ########################
 FROM node:20-alpine AS deps
 
@@ -11,9 +9,13 @@ RUN apk add --no-cache openssl
 # dependências + Prisma Client
 COPY package*.json ./
 COPY prisma ./prisma
+
+# evita gerar 2× o client (fase deps + builder)
 ENV PRISMA_SKIP_POSTINSTALL_GENERATE=1
+
 RUN npm ci
 RUN npx prisma generate --schema=prisma/schema.prisma
+
 
 
 ########################
@@ -27,12 +29,14 @@ RUN apk add --no-cache openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/package*.json ./
 COPY --from=deps /app/prisma        ./prisma
+
 COPY tsconfig*.json ./
-COPY src ./src
+COPY src        ./src
 RUN mkdir -p firebase
-COPY firebase ./firebase
+COPY firebase   ./firebase
 
 RUN npm run build --if-present
+
 
 
 ########################
@@ -42,18 +46,27 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# artefatos necessários
+# ─ artefatos necessários
 COPY --from=builder /app/dist          ./dist
 COPY --from=builder /app/node_modules  ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma        ./prisma
 
-# ↓ tudo a seguir precisa de permissão de escrita → faz como root
+############################################################
+# ✅ CORREÇÃO: prepara diretórios de upload com permissão
+############################################################
 USER root
-RUN npm prune --omit=dev && npm cache clean --force \
- && addgroup -S app && adduser -S app -G app \
- && chown -R app:app /app
 
+# 1. remove dev-deps, limpa cache
+RUN npm prune --omit=dev && npm cache clean --force \
+# 2. cria diretórios necessários para uploads
+ && mkdir -p /app/uploads/fotos /app/uploads/docs \
+# 3. cria usuário não-root e ajusta permissões
+ && addgroup -S app && adduser -S app -G app \
+ && chown -R app:app /app   \
+ && chmod -R 755 /app/uploads
+
+# agora executa como usuário restrito
 USER app
 
 ENV NODE_ENV=production

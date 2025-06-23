@@ -40,8 +40,7 @@ async function bootstrap() {
   app.enableCors({ origin: corsOrigins.length ? corsOrigins : '*', credentials: true });
 
   
-  app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
-
+// app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
  
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
   app.useGlobalFilters(new AllExceptionsFilter());

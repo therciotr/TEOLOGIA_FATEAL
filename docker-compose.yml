@@ -22,7 +22,7 @@ services:
     volumes:
       - mariadb_data:/var/lib/mysql
     ports:
-      - "3306:3306"
+      - "3307:3306"
     networks:
       - teologia_network
     healthcheck:
@@ -51,11 +51,11 @@ services:
         node dist/src/main.js
       "
     volumes:
-      - ./secrets/firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
+      - ./secrets:/app/secrets:ro
       - logs_data:/app/logs
       - uploads_data:/app/uploads
     ports:
-      - "3000:3000"
+      - "3001:3000"
     networks:
       - teologia_network
     healthcheck:
@@ -107,8 +107,8 @@ services:
       - --certificatesresolvers.myresolver.acme.email=${EMAIL_LETSENCRYPT}
       - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
     ports:
-      - "80:80"
-      - "443:443"
+      - "8081:80"
+      - "4443:443"
       - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
