@@ -1,37 +1,52 @@
-import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, lazy } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
-import PrivateLayout from '@/layouts/PrivateLayout';
-import { isAuthenticated } from '@/services/auth';
+import PrivateLayout from "@/layouts/PrivateLayout";
+import { isAuthenticated } from "@/services/auth";
+import { Spinner } from "@/components/ui/spinner";
 
-/* ─────────── Lazy‑load pages ─────────── */
-const Home            = lazy(() => import('@/pages/Home'));
-const Alunos          = lazy(() => import('@/pages/alunos'));
-const EditarAluno     = lazy(() => import('@/pages/alunos/editar'));
-const VisualizarAluno = lazy(() => import('@/pages/alunos/visualizar'));
-const Mensalidades    = lazy(() => import('@/pages/Mensalidades'));
-const Pagamentos      = lazy(() => import('@/pages/Pagamentos'));
-const Planos          = lazy(() => import('@/pages/Planos'));
-const Relatorios      = lazy(() => import('@/pages/Relatorios'));
-const Responsaveis    = lazy(() => import('@/pages/Responsaveis'));
-const Turmas          = lazy(() => import('@/pages/Turmas'));
-const Login           = lazy(() => import('@/pages/Login'));
-const RecuperarSenha  = lazy(() => import('@/pages/RecuperarSenha'));
+/* ───── lazy pages ───── */
+const Home            = lazy(() => import("@/pages/Home"));
+const Alunos          = lazy(() => import("@/pages/alunos"));
+const EditarAluno     = lazy(() => import("@/pages/alunos/editar"));
+const VisualizarAluno = lazy(() => import("@/pages/alunos/visualizar"));
+const Mensalidades    = lazy(() => import("@/pages/Mensalidades"));
+const Pagamentos      = lazy(() => import("@/pages/Pagamentos"));
+const Planos          = lazy(() => import("@/pages/Planos"));
+const Relatorios      = lazy(() => import("@/pages/Relatorios"));
+const Responsaveis    = lazy(() => import("@/pages/Responsaveis"));
+const Turmas          = lazy(() => import("@/pages/Turmas"));
+const Login           = lazy(() => import("@/pages/Login"));
+const RecuperarSenha  = lazy(() => import("@/pages/RecuperarSenha"));
 
-/* ─────────── Rota protegida ─────────── */
+/* ───── rota protegida ───── */
 const PrivateRoute = ({ children }: { children: JSX.Element }) =>
   isAuthenticated() ? children : <Navigate to="/login" replace />;
 
-/* ─────────── AppRoutes ─────────── */
 const AppRoutes: React.FC = () => (
   <Router>
-    <Suspense fallback={<div className="p-8 text-center">Carregando…</div>}>
+    <Suspense fallback={<Spinner className="mx-auto mt-10 h-8 w-8" />}>
       <Routes>
-        {/* Rotas públicas */}
-        <Route path="/login" element={<Login />} />
+        {/* ↳ redireciona root conforme login */}
+        <Route
+          path="/"
+          element={
+            isAuthenticated()
+              ? <Navigate to="/home" replace />
+              : <Navigate to="/login" replace />
+          }
+        />
+
+        {/* públicas */}
+        <Route
+          path="/login"
+          element={
+            isAuthenticated() ? <Navigate to="/home" replace /> : <Login />
+          }
+        />
         <Route path="/recuperar-senha" element={<RecuperarSenha />} />
 
-        {/* Rotas privadas */}
+        {/* privadas */}
         <Route
           path="/"
           element={
@@ -40,7 +55,7 @@ const AppRoutes: React.FC = () => (
             </PrivateRoute>
           }
         >
-          <Route index element={<Home />} />
+          <Route path="home" element={<Home />} />
           <Route path="alunos" element={<Alunos />} />
           <Route path="alunos/editar/:id" element={<EditarAluno />} />
           <Route path="alunos/visualizar/:id" element={<VisualizarAluno />} />
@@ -53,7 +68,14 @@ const AppRoutes: React.FC = () => (
         </Route>
 
         {/* 404 */}
-        <Route path="*" element={<h1 className="text-center mt-20 text-2xl text-red-600">404 – Página não encontrada</h1>} />
+        <Route
+          path="*"
+          element={
+            <h1 className="mt-20 text-center text-2xl text-red-600">
+              404 – Página não encontrada
+            </h1>
+          }
+        />
       </Routes>
     </Suspense>
   </Router>

@@ -1,6 +1,7 @@
 // tailwind.config.ts
 import type { Config } from 'tailwindcss'
-import defaultTheme    from 'tailwindcss/defaultTheme'
+import defaultTheme     from 'tailwindcss/defaultTheme'
+
 import forms           from '@tailwindcss/forms'
 import typography      from '@tailwindcss/typography'
 import aspectRatio     from '@tailwindcss/aspect-ratio'
@@ -9,7 +10,7 @@ import scrollbar       from 'tailwind-scrollbar'
 const config: Config = {
   content: [
     './index.html',
-    './src/**/*.{html,js,jsx,ts,tsx,css}',
+    './src/**/*.{html,js,jsx,ts,tsx,css,mdx,json}',        // ✅ ampliado
   ],
 
   darkMode: 'class',
@@ -17,12 +18,8 @@ const config: Config = {
   theme: {
     /** ❗ NÃO sobrescreva, apenas _estenda_ a paleta */
     extend: {
-      /* sua cor primária */
       colors: {
-        primary: {
-          DEFAULT: '#4f46e5',
-          dark:    '#4338ca',
-        },
+        primary: { DEFAULT: '#4f46e5', dark: '#4338ca' },
       },
 
       fontFamily: {
@@ -36,7 +33,7 @@ const config: Config = {
         'md-blue': '0 4px 6px -1px rgba(79,70,229,.25), 0 2px 4px -2px rgba(79,70,229,.10)',
       },
 
-      /* animações utilitárias */
+      /** animações utilitárias */
       keyframes: {
         fadeIn : { '0%':{opacity:0,transform:'translateY(5px)'},
                    '100%':{opacity:1,transform:'translateY(0)'} },
@@ -72,7 +69,7 @@ const config: Config = {
 
     /* texto/cores que aparecem em @apply */
     'text-xs','text-sm','text-white','text-red-500',
-    'bg-slate-800','bg-slate-900',
+    'bg-slate-100','bg-slate-800','bg-slate-900',          // ✅ adicionado bg-slate-100
 
     /* sombras declaradas via var(--shadow-md) */
     'shadow','shadow-md',
@@ -82,7 +79,7 @@ const config: Config = {
   ],
 
   plugins: [
-    forms,
+    forms({ strategy: 'class' }),                          // ✅ strategy explicitada
     typography,
     aspectRatio,
     scrollbar({ nocompatible: true }),

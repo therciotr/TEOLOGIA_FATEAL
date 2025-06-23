@@ -6,6 +6,7 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
+    "target": "frontend",
     "public": "frontend_teologia/dist",
     "ignore": [
       "firebase.json",

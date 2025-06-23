@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "mobile-teologia"
-  }
+  },
+  "targets": {
+    "mobile-teologia": {
+      "hosting": {
+        "frontend": [
+          "mobile-teologia"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

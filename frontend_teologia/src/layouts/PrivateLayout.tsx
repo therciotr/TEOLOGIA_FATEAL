@@ -2,51 +2,34 @@ import React, {
   useState,
   useEffect,
   Suspense,
-  ReactNode,
   useCallback,
 } from 'react';
-import {
-  Outlet,
-  useLocation,
-  useNavigate,
-  NavigateFunction,
-} from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from '@/components/Sidebar';
 import { LogOut, Moon, Sun, Menu as MenuIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { getUser, logout } from '@/services/auth';
+import { Spinner } from '@/components/ui/spinner';
 
-/* ------------------------------------------------------------
-  Helpers
------------------------------------------------------------- */
 const isDesktop = () => window.innerWidth >= 1024;
 
-/* ------------------------------------------------------------
-  Navbar
------------------------------------------------------------- */
-type NavbarProps = {
+const Navbar: React.FC<{
   dark: boolean;
   toggleTheme: () => void;
   openSidebar: () => void;
-  navigate: NavigateFunction;
-};
-
-const Navbar: React.FC<NavbarProps> = ({
-  dark,
-  toggleTheme,
-  openSidebar,
-  navigate,
-}) => {
-  const userName = localStorage.getItem('userName') ?? 'Usuário';
+  navigate: ReturnType<typeof useNavigate>;
+}> = ({ dark, toggleTheme, openSidebar, navigate }) => {
+  const user = getUser();
+  const userName = user?.nome ?? 'Usuário';
 
   const handleLogout = () => {
-    localStorage.clear();
+    logout();
     navigate('/login');
   };
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4 shadow dark:border-slate-700 dark:bg-slate-900 lg:px-6">
-      {/* Botão hambúrguer mobile */}
       <Button
         variant="ghost"
         size="icon"
@@ -87,44 +70,35 @@ const Navbar: React.FC<NavbarProps> = ({
   );
 };
 
-/* ------------------------------------------------------------
-  PrivateLayout
------------------------------------------------------------- */
 const PrivateLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  /* -------------------- Autenticação -------------------- */
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) navigate('/login');
-  }, [navigate]);
-
-  /* -------------------- Tema --------------------------- */
   const [dark, setDark] = useState<boolean>(() => {
     const stored = localStorage.getItem('theme');
-    if (stored) return stored === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return stored
+      ? stored === 'dark'
+      : window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark);
+    document.documentElement.classList.remove('dark');
+    if (dark) {
+      document.documentElement.classList.add('dark');
+    }
     localStorage.setItem('theme', dark ? 'dark' : 'light');
   }, [dark]);
 
-  const toggleTheme = () => setDark((p) => !p);
+  const toggleTheme = () => setDark((prev) => !prev);
 
-  /* -------------------- Sidebar ------------------------ */
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Fecha o drawer quando redimensiona para desktop
   useEffect(() => {
     const handleResize = () => isDesktop() && setSidebarOpen(false);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Fecha o drawer ao trocar rota (somente mobile)
   useEffect(() => {
     if (!isDesktop()) setSidebarOpen(false);
   }, [location.pathname]);
@@ -132,13 +106,10 @@ const PrivateLayout: React.FC = () => {
   const openSidebar = useCallback(() => setSidebarOpen(true), []);
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
-  /* -------------------- Layout ------------------------- */
   return (
     <div className="min-h-screen flex bg-background-light dark:bg-background-dark">
-      {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} close={closeSidebar} />
 
-      {/* Conteúdo principal */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <Navbar
           dark={dark}
@@ -157,11 +128,7 @@ const PrivateLayout: React.FC = () => {
               transition={{ duration: 0.25 }}
               className="h-full"
             >
-              <Suspense
-                fallback={
-                  <div className="text-center text-slate-400">Carregando…</div>
-                }
-              >
+              <Suspense fallback={<Spinner className="mx-auto mt-10 h-8 w-8" />}>
                 <Outlet />
               </Suspense>
             </motion.div>
