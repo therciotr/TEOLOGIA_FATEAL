@@ -2,11 +2,11 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": ".",
-    "baseUrl": ".",
+    "rootDir": "./src",
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["src/*"],
-      "@prisma/*": ["prisma/*"],
+      "@/*": ["*"],
+      "@prisma/*": ["../prisma/*"],
       "@firebase/*": ["firebase/*"]
     },
     "declaration": true,
@@ -16,13 +16,12 @@
     "strict": true
   },
   "include": [
-    "src/**/*",
-    "prisma/**/*.ts",
-    "firebase/**/*.ts"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "test"
+    "test",
+    "**/*.spec.ts"
   ]
 }

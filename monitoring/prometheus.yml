@@ -4,20 +4,19 @@ global:
 
 scrape_configs:
   - job_name: 'nest-backend'
+    metrics_path: /api/v1/metrics  # Corrigido: caminho correto da rota de métricas
     static_configs:
       - targets: ['backend:3000']
         labels:
           app: 'teologia_backend'
           environment: 'production'
 
-  # Exportador de métricas do host (opcional, se você usar node_exporter)
   - job_name: 'node_exporter'
     static_configs:
       - targets: ['node_exporter:9100']
         labels:
           app: 'host_metrics'
 
-  # Monitoramento do próprio Prometheus (útil para debug)
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']

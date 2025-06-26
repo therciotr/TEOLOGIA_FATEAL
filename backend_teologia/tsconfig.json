@@ -11,17 +11,17 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": ".",
+    "baseUrl": "src",
     "incremental": true,
     "strict": true,
     "strictPropertyInitialization": false,
     "paths": {
-      "@/*": ["src/*"],
-      "@prisma/*": ["prisma/*"],
+      "@/*": ["*"],
+      "@prisma/*": ["../prisma/*"],
       "@firebase/*": ["firebase/*"]
     },
     "skipLibCheck": true
   },
-  "include": ["src/**/*", "prisma/**/*.ts", "firebase/**/*.ts"],
+  "include": ["src/**/*", "prisma/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
